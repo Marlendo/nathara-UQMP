@@ -97,6 +97,6 @@ export const useLLMStore = create<LLMState>()(
         }
       },
     }),
-    { name: 'qatrial:llm' },
+    { name: 'nathara-uqmp:llm' },
   ),
 );

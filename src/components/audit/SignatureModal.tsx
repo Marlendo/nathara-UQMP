@@ -5,6 +5,9 @@ import { useAuditStore } from '../../store/useAuditStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import type { ElectronicSignature, SignatureMeaning } from '../../types';
 
+// SSO-UQMP migrasi (K17/R1): re-verify password DIHAPUS. Step-up = sesi SSO
+// segar (≤5 menit, ditegakkan server, method 'sso-reauth'). Tanpa password.
+
 interface Props {
   open: boolean;
   entityType: string;
@@ -20,24 +23,17 @@ export function SignatureModal({ open, entityType, entityId, entityTitle, onSign
   const { t } = useTranslation();
   const auditLog = useAuditStore((s) => s.log);
   const currentUser = useAuthStore((s) => s.currentUser);
-  const verifyForSignature = useAuthStore((s) => s.verifyForSignature);
-  const isSignatureValid = useAuthStore((s) => s.isSignatureValid);
 
   const [meaning, setMeaning] = useState<SignatureMeaning>('approved');
   const [reason, setReason] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ reason?: string; password?: string; auth?: string }>({});
+  const [errors, setErrors] = useState<{ reason?: string; auth?: string }>({});
 
   if (!open) return null;
 
   const validate = (): boolean => {
-    const newErrors: { reason?: string; password?: string; auth?: string } = {};
+    const newErrors: { reason?: string; auth?: string } = {};
     if (!reason.trim()) {
       newErrors.reason = t('common.required');
-    }
-    // Password required unless signature was recently verified
-    if (!isSignatureValid() && !password.trim()) {
-      newErrors.password = t('common.required');
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -46,25 +42,13 @@ export function SignatureModal({ open, entityType, entityId, entityTitle, onSign
   const handleSign = () => {
     if (!validate()) return;
 
-    // Verify password for signature if not already verified
-    if (!isSignatureValid()) {
-      if (currentUser) {
-        const verified = verifyForSignature(password);
-        if (!verified) {
-          setErrors((prev) => ({ ...prev, auth: t('signature.authFailed') }));
-          return;
-        }
-      }
-      // If no user is logged in, fall back to accepting password (backward compat)
-    }
-
     const signature: ElectronicSignature = {
       signerId: currentUser?.id || 'anonymous',
       signerName: currentUser?.displayName || 'Anonymous User',
-      signerRole: currentUser?.title || currentUser?.role || 'User',
+      signerRole: currentUser?.role || 'User',
       timestamp: new Date().toISOString(),
       meaning,
-      method: currentUser ? 'password-verified' : 'password-unverified',
+      method: 'sso-reauth',
     };
 
     // Log to audit trail
@@ -87,14 +71,12 @@ export function SignatureModal({ open, entityType, entityId, entityTitle, onSign
     // Reset form
     setMeaning('approved');
     setReason('');
-    setPassword('');
     setErrors({});
   };
 
   const handleCancel = () => {
     setMeaning('approved');
     setReason('');
-    setPassword('');
     setErrors({});
     onCancel();
   };
@@ -177,24 +159,12 @@ export function SignatureModal({ open, entityType, entityId, entityTitle, onSign
             {errors.reason && <p className="text-xs text-danger mt-0.5">{errors.reason}</p>}
           </div>
 
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">
-              {t('signature.password')} <span className="text-danger">*</span>
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
-              }}
-              placeholder={t('signature.authenticate')}
-              className={`w-full px-3 py-2 bg-input-bg border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors ${
-                errors.password ? 'border-danger' : 'border-input-border'
-              }`}
-            />
-            {errors.password && <p className="text-xs text-danger mt-0.5">{errors.password}</p>}
+          {/* Step-up SSO info (pengganti password): sesi SSO harus segar ≤5 menit */}
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-accent-subtle border border-accent/20">
+            <ShieldCheck className="w-4 h-4 text-accent shrink-0" />
+            <p className="text-xs text-text-secondary">
+              Verifikasi step-up SSO: sesi SSO harus segar (≤5 menit). Bila kedaluwarsa, masuk ulang SSO.
+            </p>
           </div>
 
           {/* Auth error */}
@@ -213,12 +183,6 @@ export function SignatureModal({ open, entityType, entityId, entityTitle, onSign
                 <span className="font-medium text-text-primary">{currentUser.displayName}</span>
                 <span className="mx-1">·</span>
                 <span>{currentUser.role}</span>
-                {currentUser.department && (
-                  <>
-                    <span className="mx-1">·</span>
-                    <span>{currentUser.department}</span>
-                  </>
-                )}
               </div>
             </div>
           )}

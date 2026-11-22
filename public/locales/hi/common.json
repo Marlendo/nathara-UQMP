@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "QAtrial",
+    "name": "Nathara UQMP",
     "newProject": "नया प्रोजेक्ट"
   },
   "nav": {
@@ -202,8 +202,8 @@
     "portfolioHealth_on_track": "सही रास्ते पर",
     "portfolioHealth_at_risk": "जोखिम में",
     "portfolioHealth_blocked": "अवरुद्ध",
-    "portfolioEnterpriseTitle": "QAtrial Enterprise",
-    "portfolioEnterpriseDesc": "इस सुविधा के लिए बहु-प्रोजेक्ट प्रबंधन हेतु QAtrial Enterprise आवश्यक है। एकाधिक प्रोजेक्ट प्रबंधित करने, साइटों में तत्परता की तुलना करने और समेकित अनुपालन रिपोर्ट जनरेट करने के लिए अपने खाता प्रबंधक से संपर्क करें।"
+    "portfolioEnterpriseTitle": "Nathara UQMP Enterprise",
+    "portfolioEnterpriseDesc": "इस सुविधा के लिए बहु-प्रोजेक्ट प्रबंधन हेतु Nathara UQMP Enterprise आवश्यक है। एकाधिक प्रोजेक्ट प्रबंधित करने, साइटों में तत्परता की तुलना करने और समेकित अनुपालन रिपोर्ट जनरेट करने के लिए अपने खाता प्रबंधक से संपर्क करें।"
   },
   "statuses": {
     "Draft": "ड्राफ्ट",

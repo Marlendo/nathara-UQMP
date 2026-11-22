@@ -28,7 +28,7 @@ const STATUS_COLORS: Record<string, string> = {
   overdue: 'text-danger',
 };
 
-const LS_KEY = 'qatrial:tasks';
+const LS_KEY = 'nathara-uqmp:tasks';
 
 function getAllLocalTasks(): QTask[] {
   try {

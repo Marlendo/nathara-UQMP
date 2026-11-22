@@ -1,4 +1,4 @@
-# QAtrial Implementation Status
+# Nathara UQMP Implementation Status
 
 ## Implemented Across the Last Nine Passes
 
@@ -19,7 +19,7 @@ This removes a class of silent failures where hooks expected arrays directly whi
 
 ### 2. API Base Handling in Server Mode
 
-Updated the shared API client to respect the stored server URL from `qatrial:api-url` instead of relying only on `VITE_API_URL`.
+Updated the shared API client to respect the stored server URL from `nathara-uqmp:api-url` instead of relying only on `VITE_API_URL`.
 
 This makes server mode more coherent with the app-mode configuration and fixes cases where login/API requests would still hit the default local API address.
 

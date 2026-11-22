@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "QAtrial",
+    "name": "Nathara UQMP",
     "newProject": "Neues Projekt"
   },
   "nav": {
@@ -725,7 +725,7 @@
     "audit_re_qualification": "Re-Qualifizierung"
   },
   "supplierPortal": {
-    "header": "QAtrial Lieferantenportal",
+    "header": "Nathara UQMP Lieferantenportal",
     "externalAccess": "Externer Zugang",
     "expiryBanner": "Externer Zugang -- l\u00e4uft ab: {{date}}",
     "accessDenied": "Zugang verweigert",

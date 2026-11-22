@@ -1,6 +1,7 @@
+import { getStoredToken } from '../lib/apiClient';
 import { useState, useEffect, useCallback } from 'react';
 
-const DB_NAME = 'qatrial-offline';
+const DB_NAME = 'nathara-uqmp-offline';
 const STORE_NAME = 'mutations';
 
 interface QueuedMutation {
@@ -99,7 +100,7 @@ export function useOfflineQueue() {
 
   const queueMutation = useCallback(
     async (method: string, url: string, body: string) => {
-      const token = localStorage.getItem('qatrial:token');
+      const token = getStoredToken();
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };

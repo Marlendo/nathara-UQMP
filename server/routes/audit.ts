@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 
 const audit = new Hono();
 
-audit.use('*', authMiddleware);
+audit.use('*', ssoAuthMiddleware);
 
 audit.get('/', async (c) => {
   try {
@@ -52,7 +52,7 @@ audit.get('/', async (c) => {
   }
 });
 
-audit.get('/export', requirePermission('canExport'), async (c) => {
+audit.get('/export', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const projectId = c.req.query('projectId');

@@ -1,0 +1,59 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/meyerthorsten/nathara-uqmp
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3001
+
+ingress:
+  enabled: false
+  className: nginx
+  hosts:
+    - host: pjm.nathara.ac.id
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: pjm-tls
+  #    hosts:
+  #      - pjm.nathara.ac.id
+
+postgresql:
+  enabled: true
+  auth:
+    database: nathara-uqmp
+    username: nathara-uqmp
+    # Nilai via --set / secret eksternal. DILARANG commit kredensial asli.
+    password: changeme-replace-via-secret
+
+env:
+  # SSO-UQMP: JWT lama DIMATIKAN; SSO Supabase prod via SSO_* (lihat .env.example).
+  # Helm NON-AKTIF untuk deploy (default = compose VPS).
+  SUPABASE_URL: "https://api.nathara.ac.id"
+  SSO_ISSUER_URL: "https://sso.nathara.ac.id"
+  SSO_JWKS_URL: "https://api.nathara.ac.id/functions/v1/sso-jwks"
+  SSO_CALLBACK_URL: "https://pjm.nathara.ac.id/api/auth/sso/callback"
+  AI_PROVIDER_TYPE: ""
+  AI_PROVIDER_URL: ""
+  AI_PROVIDER_KEY: ""
+  AI_PROVIDER_MODEL: ""
+
+persistence:
+  uploads:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+
+resources:
+  limits:
+    memory: 512Mi
+  requests:
+    memory: 256Mi
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

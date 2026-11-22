@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const udi = new Hono();
 
-udi.use('*', authMiddleware);
+udi.use('*', ssoAuthMiddleware);
 
 // GUDID export (must be before /:id)
 udi.get('/gudid-export', async (c) => {
@@ -103,7 +103,7 @@ udi.get('/', async (c) => {
 });
 
 // Create UDI
-udi.post('/', requirePermission('canEdit'), async (c) => {
+udi.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -175,7 +175,7 @@ udi.get('/:id', async (c) => {
 });
 
 // Update UDI
-udi.put('/:id', requirePermission('canEdit'), async (c) => {
+udi.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -224,7 +224,7 @@ udi.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Delete UDI
-udi.delete('/:id', requirePermission('canDelete'), async (c) => {
+udi.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

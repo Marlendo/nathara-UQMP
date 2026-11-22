@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 
 const econsent = new Hono();
 
-econsent.use('*', authMiddleware);
+econsent.use('*', ssoAuthMiddleware);
 
 // List consent forms
 econsent.get('/', async (c) => {
@@ -47,7 +47,7 @@ econsent.get('/', async (c) => {
 });
 
 // Create consent form
-econsent.post('/', requirePermission('canEdit'), async (c) => {
+econsent.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -114,7 +114,7 @@ econsent.get('/:id', async (c) => {
 });
 
 // Update consent form (creates new version if active)
-econsent.put('/:id', requirePermission('canEdit'), async (c) => {
+econsent.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -191,7 +191,7 @@ econsent.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Activate consent form
-econsent.put('/:id/activate', requirePermission('canApprove'), async (c) => {
+econsent.put('/:id/activate', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -229,7 +229,7 @@ econsent.put('/:id/activate', requirePermission('canApprove'), async (c) => {
 });
 
 // Supersede consent form
-econsent.put('/:id/supersede', requirePermission('canApprove'), async (c) => {
+econsent.put('/:id/supersede', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

@@ -1,12 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import type { JwtPayload } from './middleware/auth.js';
+import type { SsoUser } from './middleware/ssoAuth.js';
 
 type MockFn = ReturnType<typeof vi.fn>;
 type ModelMock = Record<string, MockFn>;
 
-const { prisma, dispatchWebhookMock, bcryptCompareMock, bcryptHashMock } = vi.hoisted(() => {
+const TEST_FORBIDDEN_MESSAGE =
+  'Akses ditolak: butuh peran admin scope UQMP. Hubungi admin PJM.';
+
+const { prisma, dispatchWebhookMock } = vi.hoisted(() => {
   const createModelMock = () => ({
     findMany: vi.fn(),
     findUnique: vi.fn(),
@@ -70,41 +73,73 @@ const { prisma, dispatchWebhookMock, bcryptCompareMock, bcryptHashMock } = vi.ho
       monitoringReading: createModelMock(),
     },
     dispatchWebhookMock: vi.fn(),
-    bcryptCompareMock: vi.fn(),
-    bcryptHashMock: vi.fn(),
   };
 });
 
 vi.mock('./lib/prisma.js', () => ({ prisma }));
 vi.mock('./services/webhook.service.js', () => ({ dispatchWebhook: dispatchWebhookMock }));
-vi.mock('bcryptjs', () => ({
-  compare: bcryptCompareMock,
-  hash: bcryptHashMock,
-  default: {
-    compare: bcryptCompareMock,
-    hash: bcryptHashMock,
+
+// SSO-UQMP: guard nyata (JWKS prod) diganti fake deterministik untuk contract
+// test — guard exact admin/UQMP tetap ditegakkan (role==='admin' &&
+// scope==='UQMP'), selain itu 403 default deny.
+vi.mock('./middleware/ssoAuth.js', () => ({
+  ssoAuthMiddleware: async (c: any, next: any) => {
+    const raw = c.req.header('x-test-user');
+    if (!raw) {
+      return c.json({ message: 'Missing or invalid Authorization header' }, 401);
+    }
+    try {
+      c._user = JSON.parse(raw);
+    } catch {
+      return c.json({ message: 'Invalid token' }, 401);
+    }
+    await next();
   },
+  requireAdminUQMP: () => async (c: any, next: any) => {
+    const user = c._user;
+    if (!user) {
+      return c.json({ message: 'Authentication required' }, 401);
+    }
+    if (user.role !== 'admin' || user.scope !== 'UQMP') {
+      return c.json({ message: TEST_FORBIDDEN_MESSAGE }, 403);
+    }
+    await next();
+  },
+  getUser: (c: any) => c._user,
+  roleHasPermission: (role: string) => role === 'admin',
+  isSsoFreshForEsign: (user: any) =>
+    typeof user?.iat === 'number' && Date.now() / 1000 - user.iat <= 300,
+  verifyProdToken: async () => null,
+  resolveSsoUser: async () => ({ error: TEST_FORBIDDEN_MESSAGE, status: 403 }),
+  auditSso: async () => {},
 }));
 
 import { app } from './app.js';
-import { signAccessToken } from './middleware/auth.js';
 
 const uploadsRoot = path.resolve(process.cwd(), 'uploads');
-const baseUser: JwtPayload = {
+// SSO-UQMP: satu-satunya peran akses = admin + scope UQMP (exact match).
+const baseUser: SsoUser = {
   userId: 'user-1',
   email: 'qa@example.com',
-  role: 'qa_manager',
+  name: 'QA User',
+  role: 'admin',
+  scope: 'UQMP',
   orgId: 'org-1',
+  supabaseSub: 'sub-admin-1',
 };
 
 function resetModel(model: ModelMock) {
   Object.values(model).forEach((mock) => mock.mockReset());
 }
 
-function authHeaders(overrides: Partial<JwtPayload> = {}, headers?: HeadersInit): Headers {
-  const token = signAccessToken({ ...baseUser, ...overrides });
+function authHeaders(overrides: Partial<SsoUser> = {}, headers?: HeadersInit): Headers {
+  const testUser: SsoUser = {
+    ...baseUser,
+    ...overrides,
+    iat: Math.floor(Date.now() / 1000),
+  };
   const merged = new Headers(headers);
-  merged.set('Authorization', `Bearer ${token}`);
+  merged.set('x-test-user', JSON.stringify(testUser));
   return merged;
 }
 
@@ -116,7 +151,7 @@ async function requestJson(
     body,
     headers,
   }: {
-    user?: Partial<JwtPayload>;
+    user?: Partial<SsoUser>;
     method?: string;
     body?: unknown;
     headers?: HeadersInit;
@@ -146,9 +181,6 @@ async function requestJson(
 
 beforeEach(() => {
   dispatchWebhookMock.mockReset();
-  bcryptCompareMock.mockReset();
-  bcryptHashMock.mockReset();
-  bcryptHashMock.mockResolvedValue('hashed-password');
 
   Object.values(prisma).forEach((model) => resetModel(model as ModelMock));
 
@@ -231,25 +263,16 @@ describe('server app contracts', () => {
     });
   });
 
-  it('verifies the current user password for server-side signatures', async () => {
-    prisma.user.findUnique.mockResolvedValue({
-      id: 'user-1',
-      email: baseUser.email,
-      name: 'QA User',
-      passwordHash: 'stored-hash',
-      role: baseUser.role,
-      orgId: baseUser.orgId,
-    });
-    bcryptCompareMock.mockResolvedValue(true);
+  it('disables password endpoints (SSO-only)', async () => {
+    for (const path of ['/api/auth/register', '/api/auth/login', '/api/auth/verify-password', '/api/auth/refresh', '/api/auth/me']) {
+      const response = await requestJson(path, {
+        user: baseUser,
+        method: path === '/api/auth/me' ? 'GET' : 'POST',
+        body: {},
+      });
 
-    const response = await requestJson('/api/auth/verify-password', {
-      user: baseUser,
-      method: 'POST',
-      body: { password: 'correct horse battery staple' },
-    });
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toEqual({ valid: true });
+      expect(response.status).toBe(404);
+    }
   });
 
   it('blocks delete operations for qa_engineers on protected core routes', async () => {
@@ -454,7 +477,7 @@ describe('server app contracts', () => {
       entityType: 'requirement',
       entityId: 'req-1',
       status: 'pending',
-      requestedBy: 'user-1',
+      requestedBy: 'user-2',
       createdAt: new Date('2026-01-04T00:00:00Z'),
     };
     const approvedApproval = {
@@ -467,6 +490,11 @@ describe('server app contracts', () => {
     };
 
     prisma.requirement.findUnique.mockResolvedValue({ projectId: 'project-1' });
+    prisma.project.findFirst.mockResolvedValue({
+      id: 'project-1',
+      name: 'Alpha',
+      workspaceId: 'ws-1',
+    });
     prisma.approval.findFirst
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(pendingApproval);
@@ -494,7 +522,7 @@ describe('server app contracts', () => {
     });
 
     const approveResponse = await requestJson('/api/approvals/requirement/req-1/approve', {
-      user: { ...baseUser, userId: 'reviewer-1', email: 'reviewer@example.com', role: 'reviewer' },
+      user: baseUser,
       method: 'POST',
       body: { signatureId: 'sig-1' },
     });
@@ -510,20 +538,25 @@ describe('server app contracts', () => {
   });
 
   it('requires a reason when rejecting approvals', async () => {
+    prisma.project.findFirst.mockResolvedValue({
+      id: 'project-1',
+      name: 'Alpha',
+      workspaceId: 'ws-1',
+    });
     const pendingApproval = {
       id: 'approval-1',
       projectId: 'project-1',
       entityType: 'requirement',
       entityId: 'req-1',
       status: 'pending',
-      requestedBy: 'user-1',
+      requestedBy: 'user-2',
     };
 
     prisma.approval.findFirst.mockResolvedValue(pendingApproval);
     prisma.approval.findUnique.mockResolvedValue(pendingApproval);
 
     const response = await requestJson('/api/approvals/requirement/req-1/reject', {
-      user: { ...baseUser, userId: 'reviewer-1', email: 'reviewer@example.com', role: 'reviewer' },
+      user: baseUser,
       method: 'POST',
       body: {},
     });
@@ -551,16 +584,15 @@ describe('server app contracts', () => {
     expect(prisma.approval.update).not.toHaveBeenCalled();
   });
 
-  it('creates signatures with password verification and lists them by entity', async () => {
+  it('creates signatures with SSO step-up and lists them by entity', async () => {
     prisma.user.findUnique.mockResolvedValue({
       id: 'user-1',
       email: baseUser.email,
       name: 'QA User',
-      passwordHash: 'stored-hash',
       role: baseUser.role,
+      scope: baseUser.scope,
       orgId: baseUser.orgId,
     });
-    bcryptCompareMock.mockResolvedValue(true);
     prisma.signature.create.mockImplementation(async ({ data }) => ({
       id: 'sig-1',
       timestamp: new Date('2026-01-05T00:00:00Z'),
@@ -585,7 +617,6 @@ describe('server app contracts', () => {
         entityId: 'req-1',
         meaning: 'approved',
         reason: 'Ready for release',
-        password: 'correct horse battery staple',
       },
     });
 
@@ -616,7 +647,7 @@ describe('server app contracts', () => {
     });
   });
 
-  it('blocks approval-style signatures for roles without approval permission', async () => {
+  it('blocks signatures for non-admin/UQMP callers (default deny)', async () => {
     const response = await requestJson('/api/signatures', {
       user: { ...baseUser, role: 'qa_engineer' },
       method: 'POST',
@@ -632,13 +663,18 @@ describe('server app contracts', () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
-      message: 'Insufficient permissions: requires canApprove',
+      message: TEST_FORBIDDEN_MESSAGE,
     });
     expect(prisma.signature.create).not.toHaveBeenCalled();
   });
 
   it('lists, measures completeness, downloads, and deletes evidence records', async () => {
-    const storagePath = path.join('/tmp', `qatrial-evidence-${Date.now()}-${Math.random().toString(16).slice(2)}.txt`);
+    prisma.project.findFirst.mockResolvedValue({
+      id: 'project-1',
+      name: 'Alpha',
+      workspaceId: 'ws-1',
+    });
+    const storagePath = path.join('/tmp', `nathara-uqmp-evidence-${Date.now()}-${Math.random().toString(16).slice(2)}.txt`);
     fs.writeFileSync(storagePath, 'hello evidence');
 
     const evidenceRecord = {
@@ -853,7 +889,9 @@ describe('server app contracts', () => {
       id: 'user-2',
       email: 'new.member@example.com',
       name: 'New Member',
-      role: 'qa_engineer',
+      role: 'admin',
+      scope: 'UQMP',
+      supabaseSub: null,
     });
 
     const teamResponse = await requestJson('/api/users/team', { user: baseUser });
@@ -870,25 +908,33 @@ describe('server app contracts', () => {
     });
 
     const inviteResponse = await requestJson('/api/users/invite', {
-      user: { ...baseUser, role: 'admin' },
+      user: baseUser,
       method: 'POST',
       body: {
         email: 'new.member@example.com',
         name: 'New Member',
-        role: 'qa_engineer',
       },
     });
 
     expect(inviteResponse.status).toBe(201);
-    await expect(inviteResponse.json()).resolves.toMatchObject({
+    const inviteBody = await inviteResponse.json();
+    expect(inviteBody).toMatchObject({
       user: {
         id: 'user-2',
         email: 'new.member@example.com',
         name: 'New Member',
-        role: 'qa_engineer',
+        role: 'admin',
       },
-      temporaryPassword: expect.any(String),
     });
+    expect(inviteBody).not.toHaveProperty('temporaryPassword');
+
+    const badRoleResponse = await requestJson('/api/users/invite', {
+      user: baseUser,
+      method: 'POST',
+      body: { email: 'other@example.com', role: 'qa_engineer' },
+    });
+
+    expect(badRoleResponse.status).toBe(400);
   });
 
   it('blocks approval-stage document review for users without approval permission', async () => {
@@ -1015,7 +1061,7 @@ describe('server app contracts', () => {
     });
 
     const response = await requestJson('/api/workflows/executions/exec-1/act', {
-      user: { ...baseUser, userId: 'reviewer-1', email: 'reviewer@example.com', role: 'reviewer' },
+      user: { ...baseUser, userId: 'other-1', email: 'other@example.com', role: 'reviewer' },
       method: 'PUT',
       body: { action: 'approved' },
     });
@@ -1107,7 +1153,7 @@ describe('server app contracts', () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
-      message: 'Insufficient permissions: requires canEdit',
+      message: TEST_FORBIDDEN_MESSAGE,
     });
     expect(prisma.changeControl.create).not.toHaveBeenCalled();
   });
@@ -1135,7 +1181,7 @@ describe('server app contracts', () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
-      message: 'Insufficient permissions: requires canEdit',
+      message: TEST_FORBIDDEN_MESSAGE,
     });
     expect(prisma.deviation.update).not.toHaveBeenCalled();
   });
@@ -1175,7 +1221,7 @@ describe('server app contracts', () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
-      message: 'Insufficient permissions: requires canDelete',
+      message: TEST_FORBIDDEN_MESSAGE,
     });
     expect(prisma.complaint.delete).not.toHaveBeenCalled();
   });
@@ -1287,7 +1333,7 @@ describe('server app contracts', () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
-      message: 'Insufficient permissions: requires canEdit',
+      message: TEST_FORBIDDEN_MESSAGE,
     });
     expect(prisma.trainingRecord.create).not.toHaveBeenCalled();
   });
@@ -1359,7 +1405,7 @@ describe('server app contracts', () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
-      message: 'Insufficient permissions: requires canApprove',
+      message: TEST_FORBIDDEN_MESSAGE,
     });
     expect(prisma.batchRecord.findUnique).not.toHaveBeenCalled();
   });
@@ -1391,7 +1437,7 @@ describe('server app contracts', () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
-      message: 'Insufficient permissions: requires canEdit',
+      message: TEST_FORBIDDEN_MESSAGE,
     });
     expect(prisma.stabilitySample.create).not.toHaveBeenCalled();
   });
@@ -1425,7 +1471,7 @@ describe('server app contracts', () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({
-      message: 'Insufficient permissions: requires canEdit',
+      message: TEST_FORBIDDEN_MESSAGE,
     });
     expect(prisma.monitoringReading.create).not.toHaveBeenCalled();
   });

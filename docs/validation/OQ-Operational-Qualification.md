@@ -1,7 +1,7 @@
 # Operational Qualification (OQ) Protocol
 
 **Document ID:** QA-VAL-OQ-001
-**System:** QAtrial v3.0.0
+**System:** Nathara UQMP v3.0.0
 **Date:** _______________
 **Prepared by:** _______________
 
@@ -9,11 +9,11 @@
 
 ## 1. Purpose
 
-The purpose of this Operational Qualification (OQ) protocol is to verify that QAtrial functions as specified across all core workflows, meeting its design requirements under normal operating conditions.
+The purpose of this Operational Qualification (OQ) protocol is to verify that Nathara UQMP functions as specified across all core workflows, meeting its design requirements under normal operating conditions.
 
 ## 2. Scope
 
-This protocol covers the functional verification of all core QAtrial workflows:
+This protocol covers the functional verification of all core Nathara UQMP workflows:
 
 - Project creation and configuration
 - Requirements management with traceability

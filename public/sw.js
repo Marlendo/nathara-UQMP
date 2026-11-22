@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qatrial-v1';
+const CACHE_NAME = 'nathara-uqmp-v1';
 const STATIC_ASSETS = [
   '/',
   '/favicon.svg',
@@ -111,7 +111,7 @@ self.addEventListener('fetch', (event) => {
 // IndexedDB helpers for offline mutation queue
 function openOfflineDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open('qatrial-offline', 1);
+    const req = indexedDB.open('nathara-uqmp-offline', 1);
     req.onupgradeneeded = () => {
       const db = req.result;
       if (!db.objectStoreNames.contains('mutations')) {

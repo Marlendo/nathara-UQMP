@@ -1,14 +1,14 @@
 import { Hono } from 'hono';
 import { prisma } from '../../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../../middleware/ssoAuth.js';
 import { logAudit } from '../../services/audit.service.js';
 
 const sap = new Hono();
 
-sap.use('*', authMiddleware);
+sap.use('*', ssoAuthMiddleware);
 
 // Connect to SAP QM
-sap.post('/connect', requirePermission('canEdit'), async (c) => {
+sap.post('/connect', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -98,7 +98,7 @@ sap.get('/status', async (c) => {
 });
 
 // Sync batch inspection data from SAP QM
-sap.post('/sync-batches', requirePermission('canEdit'), async (c) => {
+sap.post('/sync-batches', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const orgId = user.orgId;
@@ -151,7 +151,7 @@ sap.post('/sync-batches', requirePermission('canEdit'), async (c) => {
 });
 
 // Sync supplier master data from SAP
-sap.post('/sync-suppliers', requirePermission('canEdit'), async (c) => {
+sap.post('/sync-suppliers', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const orgId = user.orgId;
@@ -187,7 +187,7 @@ sap.post('/sync-suppliers', requirePermission('canEdit'), async (c) => {
 });
 
 // Sync material data from SAP
-sap.post('/sync-materials', requirePermission('canEdit'), async (c) => {
+sap.post('/sync-materials', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const orgId = user.orgId;

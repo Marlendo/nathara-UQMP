@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser } from '../middleware/ssoAuth.js';
 
 interface Anomaly {
   type: 'deviation_spike' | 'yield_drop' | 'oos_trend' | 'complaint_spike' | 'supplier_degradation';
@@ -16,7 +16,7 @@ interface Anomaly {
 }
 
 const analytics = new Hono();
-analytics.use('*', authMiddleware);
+analytics.use('*', ssoAuthMiddleware);
 
 // ── Helper: simple statistics ───────────────────────────────────────────────
 

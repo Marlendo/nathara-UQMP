@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
-import { authMiddleware, getUser, requirePermission, roleHasPermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, roleHasPermission, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const documents = new Hono();
 
-documents.use('*', authMiddleware);
+documents.use('*', ssoAuthMiddleware);
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   draft: ['in_review'],
@@ -72,7 +72,7 @@ documents.get('/:id', async (c) => {
 });
 
 // Create document
-documents.post('/', requirePermission('canEdit'), async (c) => {
+documents.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -127,7 +127,7 @@ documents.post('/', requirePermission('canEdit'), async (c) => {
 });
 
 // Update document metadata
-documents.put('/:id', requirePermission('canEdit'), async (c) => {
+documents.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -166,7 +166,7 @@ documents.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Delete document
-documents.delete('/:id', requirePermission('canDelete'), async (c) => {
+documents.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -197,7 +197,7 @@ documents.delete('/:id', requirePermission('canDelete'), async (c) => {
 });
 
 // Create new version (changeReason required)
-documents.post('/:id/versions', requirePermission('canEdit'), async (c) => {
+documents.post('/:id/versions', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -345,7 +345,7 @@ documents.put('/:id/review', async (c) => {
 });
 
 // Supersede document with new version
-documents.put('/:id/supersede', requirePermission('canApprove'), async (c) => {
+documents.put('/:id/supersede', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -384,7 +384,7 @@ documents.put('/:id/supersede', requirePermission('canApprove'), async (c) => {
 });
 
 // Retire document
-documents.put('/:id/retire', requirePermission('canApprove'), async (c) => {
+documents.put('/:id/retire', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -425,7 +425,7 @@ documents.put('/:id/retire', requirePermission('canApprove'), async (c) => {
 // ── Document Distribution ───────────────────────────────────────────────────
 
 // Distribute document to users
-documents.post('/:id/distribute', requirePermission('canEdit'), async (c) => {
+documents.post('/:id/distribute', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

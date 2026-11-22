@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "QAtrial",
+    "name": "Nathara UQMP",
     "newProject": "New Project"
   },
   "nav": {
@@ -231,8 +231,8 @@
     "portfolioHealth_on_track": "On Track",
     "portfolioHealth_at_risk": "At Risk",
     "portfolioHealth_blocked": "Blocked",
-    "portfolioEnterpriseTitle": "QAtrial Enterprise",
-    "portfolioEnterpriseDesc": "This feature requires QAtrial Enterprise for multi-project management. Contact your account manager to manage multiple projects, compare readiness across sites, and generate consolidated compliance reports."
+    "portfolioEnterpriseTitle": "Nathara UQMP Enterprise",
+    "portfolioEnterpriseDesc": "This feature requires Nathara UQMP Enterprise for multi-project management. Contact your account manager to manage multiple projects, compare readiness across sites, and generate consolidated compliance reports."
   },
   "statuses": {
     "Draft": "Draft",
@@ -929,7 +929,7 @@
     "audit_re_qualification": "Re-qualification"
   },
   "supplierPortal": {
-    "header": "QAtrial Supplier Portal",
+    "header": "Nathara UQMP Supplier Portal",
     "externalAccess": "External Access",
     "expiryBanner": "External access -- expires: {{date}}",
     "accessDenied": "Access Denied",

@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission, roleHasPermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, roleHasPermission, requireAdminUQMP} from '../middleware/ssoAuth.js';
 
 const quizzes = new Hono();
 
-quizzes.use('*', authMiddleware);
+quizzes.use('*', ssoAuthMiddleware);
 
 // List quizzes by courseId
 quizzes.get('/', async (c) => {
@@ -43,7 +43,7 @@ quizzes.get('/', async (c) => {
 });
 
 // Create quiz with questions
-quizzes.post('/', requirePermission('canEdit'), async (c) => {
+quizzes.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -119,7 +119,7 @@ quizzes.get('/:id', async (c) => {
 });
 
 // Update quiz
-quizzes.put('/:id', requirePermission('canEdit'), async (c) => {
+quizzes.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

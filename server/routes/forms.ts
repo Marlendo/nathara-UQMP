@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser } from '../middleware/ssoAuth.js';
 
 const forms = new Hono();
-forms.use('*', authMiddleware);
+forms.use('*', ssoAuthMiddleware);
 
 // ── Templates ───────────────────────────────────────────────────────────────
 

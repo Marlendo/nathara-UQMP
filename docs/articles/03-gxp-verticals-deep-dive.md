@@ -1,6 +1,6 @@
-# From Pharma to Medical Devices: How QAtrial Adapts to Your Regulatory Reality
+# From Pharma to Medical Devices: How Nathara UQMP Adapts to Your Regulatory Reality
 
-*One platform, four dimensions, infinite combinations -- a deep dive into QAtrial's template composition system and what it means for regulatory affairs professionals.*
+*One platform, four dimensions, infinite combinations -- a deep dive into Nathara UQMP's template composition system and what it means for regulatory affairs professionals.*
 
 ---
 
@@ -8,11 +8,11 @@ Here is a truth that every regulatory affairs professional knows but that generi
 
 The FDA expects compliance with 21 CFR Part 11 for electronic records. The PMDA has its own ER/ES guidance. The EU requires conformity with Annex 11. The NMPA has Chinese national equivalents of ISO standards that are not identical to their international counterparts. A medical device company needs ISO 14971 risk management. A pharmaceutical company needs ICH Q9. A clinical laboratory needs CLIA compliance. An aerospace supplier needs AS9100D.
 
-Generic quality tools handle this by offering blank templates and expecting you to fill in the regulatory context yourself. QAtrial takes the opposite approach: it builds the regulatory context in from the start, through a four-dimensional template composition engine.
+Generic quality tools handle this by offering blank templates and expecting you to fill in the regulatory context yourself. Nathara UQMP takes the opposite approach: it builds the regulatory context in from the start, through a four-dimensional template composition engine.
 
 ## The Four-Dimensional Template Model
 
-Every QAtrial project is defined by four independent dimensions:
+Every Nathara UQMP project is defined by four independent dimensions:
 
 ```
 Country (jurisdiction) x Vertical (domain) x Project Type (execution) x Modules (quality controls)
@@ -22,7 +22,7 @@ These dimensions compose -- they layer on top of each other to produce a project
 
 ### Dimension 1: Country (37 Jurisdictions)
 
-The country determines which regulatory authority's expectations apply. QAtrial ships with base templates for 14 countries (US, EU, DE, GB, FR, JP, CN, KR, IN, CA, MX, IT, ES, NL) and supports 37 total jurisdictions through a combination of direct templates and regional base templates.
+The country determines which regulatory authority's expectations apply. Nathara UQMP ships with base templates for 14 countries (US, EU, DE, GB, FR, JP, CN, KR, IN, CA, MX, IT, ES, NL) and supports 37 total jurisdictions through a combination of direct templates and regional base templates.
 
 For EU member states, the system loads the EU base template first (covering EU GMP, MDR 2017/745, IVDR, Annex 11, and REACH), then applies country-specific overlays. Germany gets BfArM-specific CSV expectations and AMWHV requirements. France gets ANSM guidelines and CNIL data protection requirements. Italy gets AIFA enforcement specifics.
 
@@ -150,7 +150,7 @@ Test-to-requirement linking uses tags, not indices. Each template test has a `li
 
 ## Current Regulatory References
 
-QAtrial's templates reference current regulatory standards, including recent updates:
+Nathara UQMP's templates reference current regulatory standards, including recent updates:
 
 - **QMSR**: The FDA's Quality Management System Regulation, which is replacing the older 21 CFR 820 QSR for medical devices, aligning US requirements more closely with ISO 13485
 - **ICH E6(R3)**: The upcoming revision to Good Clinical Practice, which modernizes GCP for decentralized and technology-enabled clinical trials
@@ -169,6 +169,6 @@ Adding a new vertical follows a similar pattern under `src/templates/verticals/`
 
 For regulatory affairs consultants who specialize in specific jurisdictions or industries, contributing templates is a way to codify their expertise in a form that benefits the entire community. The AGPL-3.0 license ensures that improvements flow back to the project.
 
-The template composition engine is the core of QAtrial's value proposition. Generic quality tools ask you to build your regulatory framework from scratch. QAtrial asks you to select your reality and gives you a head start.
+The template composition engine is the core of Nathara UQMP's value proposition. Generic quality tools ask you to build your regulatory framework from scratch. Nathara UQMP asks you to select your reality and gives you a head start.
 
-QAtrial is available at [github.com/MeyerThorsten/QAtrial](https://github.com/MeyerThorsten/QAtrial).
+Nathara UQMP is available at [github.com/MeyerThorsten/Nathara UQMP](https://github.com/MeyerThorsten/Nathara UQMP).

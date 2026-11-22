@@ -1,7 +1,7 @@
 /**
  * Template Composition System Types
  *
- * Defines the core type system for QAtrial's composable template engine.
+ * Defines the core type system for Nathara UQMP's composable template engine.
  * Templates are composed from verticals, country regulations, modules,
  * and overlay intersections to produce a tailored set of requirements and tests.
  */

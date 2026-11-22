@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
-import { authMiddleware, getUser, requireRole } from '../middleware/auth.js';
+import { ssoAuthMiddleware, requireAdminUQMP } from '../middleware/ssoAuth.js';
 
 const aiRoutes = new Hono();
 
-aiRoutes.use('*', authMiddleware);
+aiRoutes.use('*', ssoAuthMiddleware);
 
 // ── Environment-based provider config ──────────────────────────────────────
 
@@ -175,8 +175,15 @@ aiRoutes.get('/providers', async (c) => {
 
 // ── POST /providers ────────────────────────────────────────────────────────
 
-aiRoutes.post('/providers', requireRole('admin', 'owner'), async (c) => {
+aiRoutes.post('/providers', requireAdminUQMP(), async (c) => {
   try {
+    // SSO-UQMP (K20): AI provider NON-AKTIF default — endpoint create dimatikan.
+    if (!getServerProvider()) {
+      return c.json(
+        { message: 'AI provider non-aktif. Endpoint ini dimatikan sampai provider dikonfigurasi resmi.' },
+        403,
+      );
+    }
     // Since we use env vars, this endpoint documents how to configure.
     // In a future version this would store to DB.
     return c.json({
@@ -196,8 +203,15 @@ aiRoutes.post('/providers', requireRole('admin', 'owner'), async (c) => {
 
 // ── DELETE /providers/:id ──────────────────────────────────────────────────
 
-aiRoutes.delete('/providers/:id', requireRole('admin', 'owner'), async (c) => {
+aiRoutes.delete('/providers/:id', requireAdminUQMP(), async (c) => {
   try {
+    // SSO-UQMP (K20): AI provider NON-AKTIF default — endpoint delete dimatikan.
+    if (!getServerProvider()) {
+      return c.json(
+        { message: 'AI provider non-aktif. Endpoint ini dimatikan sampai provider dikonfigurasi resmi.' },
+        403,
+      );
+    }
     return c.json({
       message: 'Provider configuration is managed via environment variables. Remove AI_PROVIDER_* env vars to disable.',
     });

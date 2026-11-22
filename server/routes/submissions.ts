@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 
 const submissions = new Hono();
 
-submissions.use('*', authMiddleware);
+submissions.use('*', ssoAuthMiddleware);
 
 // ── Section templates per submission type ──────────────────────────────────
 
@@ -153,7 +153,7 @@ submissions.get('/', async (c) => {
 });
 
 // Create submission package
-submissions.post('/', requirePermission('canEdit'), async (c) => {
+submissions.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -221,7 +221,7 @@ submissions.get('/:id', async (c) => {
 });
 
 // Update submission
-submissions.put('/:id', requirePermission('canEdit'), async (c) => {
+submissions.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -261,7 +261,7 @@ submissions.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Delete submission
-submissions.delete('/:id', requirePermission('canDelete'), async (c) => {
+submissions.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -291,7 +291,7 @@ submissions.delete('/:id', requirePermission('canDelete'), async (c) => {
 });
 
 // Generate sections from project data
-submissions.post('/:id/generate', requirePermission('canEdit'), async (c) => {
+submissions.post('/:id/generate', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -364,7 +364,7 @@ submissions.get('/:id/export', async (c) => {
 });
 
 // Mark as submitted
-submissions.put('/:id/submit', requirePermission('canApprove'), async (c) => {
+submissions.put('/:id/submit', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

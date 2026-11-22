@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getApiBase } from '../lib/apiClient';
+import { getApiBase, getStoredToken } from '../lib/apiClient';
 
 interface PresenceUser {
   userId: string;
@@ -22,7 +22,7 @@ export function useRealtime(projectId: string) {
   const eventSourceRef = useRef<EventSource | null>(null);
   const heartbeatRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('qatrial:token') : null;
+  const token = typeof window !== 'undefined' ? getStoredToken() : null;
 
   // Connect to SSE
   useEffect(() => {

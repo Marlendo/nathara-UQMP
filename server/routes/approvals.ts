@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { findAccessibleProject, listAccessibleProjectIds } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const approvals = new Hono();
 
-approvals.use('*', authMiddleware);
+approvals.use('*', ssoAuthMiddleware);
 
 const VALID_ENTITY_TYPES = ['requirement', 'test', 'capa'] as const;
 
@@ -219,7 +219,7 @@ function approvalErrorResponse(c: any, error: unknown, label: string) {
 }
 
 // POST /request — request approval for an entity
-approvals.post('/request', requirePermission('canEdit'), async (c) => {
+approvals.post('/request', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -236,7 +236,7 @@ approvals.post('/request', requirePermission('canEdit'), async (c) => {
 });
 
 // Compatibility route for the current frontend ApprovalPanel
-approvals.post('/:entityType/:entityId/request', requirePermission('canEdit'), async (c) => {
+approvals.post('/:entityType/:entityId/request', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { entityType, entityId } = c.req.param();
@@ -248,7 +248,7 @@ approvals.post('/:entityType/:entityId/request', requirePermission('canEdit'), a
 });
 
 // PUT /:id/review — approve or reject
-approvals.put('/:id/review', requirePermission('canApprove'), async (c) => {
+approvals.put('/:id/review', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -266,7 +266,7 @@ approvals.put('/:id/review', requirePermission('canApprove'), async (c) => {
   }
 });
 
-approvals.post('/:entityType/:entityId/approve', requirePermission('canApprove'), async (c) => {
+approvals.post('/:entityType/:entityId/approve', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { entityType, entityId } = c.req.param();
@@ -283,7 +283,7 @@ approvals.post('/:entityType/:entityId/approve', requirePermission('canApprove')
   }
 });
 
-approvals.post('/:entityType/:entityId/reject', requirePermission('canApprove'), async (c) => {
+approvals.post('/:entityType/:entityId/reject', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { entityType, entityId } = c.req.param();
@@ -300,7 +300,7 @@ approvals.post('/:entityType/:entityId/reject', requirePermission('canApprove'),
   }
 });
 
-approvals.post('/:entityType/:entityId/revoke', requirePermission('canEdit'), async (c) => {
+approvals.post('/:entityType/:entityId/revoke', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { entityType, entityId } = c.req.param();
@@ -353,7 +353,7 @@ approvals.get('/', async (c) => {
 });
 
 // GET /my-pending — list approvals pending for current user's role
-approvals.get('/my-pending', requirePermission('canApprove'), async (c) => {
+approvals.get('/my-pending', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
 

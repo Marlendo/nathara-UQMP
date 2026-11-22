@@ -1,7 +1,22 @@
 import { Hono } from 'hono';
-import * as jwt from 'jsonwebtoken';
+import { SignJWT, jwtVerify } from 'jose';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, requireRole, getUser, JWT_SECRET } from '../middleware/auth.js';
+import { ssoAuthMiddleware, requireAdminUQMP, getUser } from '../middleware/ssoAuth.js';
+
+// SSO-UQMP migrasi (K18): signing audit-link HARAM pakai JWT_SECRET lama.
+// Kunci sesi app baru via file VPS: UQMP_LINK_SECRET (nilai DILARANG di log).
+// Guard create: admin/UQMP.
+
+function loadLinkSecret(): Uint8Array {
+  const secret = process.env.UQMP_LINK_SECRET;
+  if (!secret || secret.trim().length < 32 || /change-in-production/i.test(secret)) {
+    throw new Error(
+      'UQMP_LINK_SECRET environment variable is required (min 32 chars). ' +
+        'Generate one with: openssl rand -hex 48',
+    );
+  }
+  return new TextEncoder().encode(secret);
+}
 
 interface AuditModePayload {
   type: 'audit_mode';
@@ -51,19 +66,26 @@ function expiryToMs(expiresIn: AuditLinkExpiry): number {
   }
 }
 
-function verifyAuditToken(token: string): AuditModePayload {
-  const decoded = jwt.verify(token, JWT_SECRET) as AuditModePayload;
-  if (decoded.type !== 'audit_mode') {
+async function verifyAuditToken(token: string): Promise<AuditModePayload> {
+  const { payload } = await jwtVerify(token, loadLinkSecret());
+  if (payload.type !== 'audit_mode') {
     throw new Error('Not an audit mode token');
   }
-  return decoded;
+  return payload as unknown as AuditModePayload;
+}
+
+async function signAuditToken(payload: AuditModePayload, expiresIn: AuditLinkExpiry): Promise<string> {
+  return new SignJWT({ ...payload })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setExpirationTime(expiresIn)
+    .sign(loadLinkSecret());
 }
 
 const auditMode = new Hono();
 
-// ── Create audit link (admin only) ──────────────────────────────────────────
+// ── Create audit link (admin/UQMP only) ─────────────────────────────────────
 
-auditMode.post('/create', authMiddleware, requireRole('admin'), async (c) => {
+auditMode.post('/create', ssoAuthMiddleware, requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { projectId, expiresIn } = await c.req.json();
@@ -89,7 +111,7 @@ auditMode.post('/create', authMiddleware, requireRole('admin'), async (c) => {
       createdAt: new Date().toISOString(),
     };
 
-    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: expiry });
+    const token = await signAuditToken(payload, expiry);
 
     const baseUrl = c.req.header('origin') || c.req.header('referer')?.replace(/\/[^/]*$/, '') || 'http://localhost:5173';
     const auditUrl = `${baseUrl}/audit/${token}`;
@@ -110,7 +132,7 @@ auditMode.post('/create', authMiddleware, requireRole('admin'), async (c) => {
 auditMode.get('/:token/project', async (c) => {
   try {
     const { token } = c.req.param();
-    const payload = verifyAuditToken(token);
+    const payload = await verifyAuditToken(token);
 
     const project = await prisma.project.findUnique({
       where: { id: payload.projectId },
@@ -128,7 +150,7 @@ auditMode.get('/:token/project', async (c) => {
       },
     });
   } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.code === 'ERR_JWT_EXPIRED' || error.name === 'TokenExpiredError') {
       return c.json({ message: 'Audit link has expired' }, 410);
     }
     return c.json({ message: 'Invalid audit token' }, 401);
@@ -138,7 +160,7 @@ auditMode.get('/:token/project', async (c) => {
 auditMode.get('/:token/requirements', async (c) => {
   try {
     const { token } = c.req.param();
-    const payload = verifyAuditToken(token);
+    const payload = await verifyAuditToken(token);
 
     const requirements = await prisma.requirement.findMany({
       where: { projectId: payload.projectId },
@@ -147,7 +169,7 @@ auditMode.get('/:token/requirements', async (c) => {
 
     return c.json({ requirements });
   } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.code === 'ERR_JWT_EXPIRED' || error.name === 'TokenExpiredError') {
       return c.json({ message: 'Audit link has expired' }, 410);
     }
     return c.json({ message: 'Invalid audit token' }, 401);
@@ -157,7 +179,7 @@ auditMode.get('/:token/requirements', async (c) => {
 auditMode.get('/:token/tests', async (c) => {
   try {
     const { token } = c.req.param();
-    const payload = verifyAuditToken(token);
+    const payload = await verifyAuditToken(token);
 
     const tests = await prisma.test.findMany({
       where: { projectId: payload.projectId },
@@ -166,7 +188,7 @@ auditMode.get('/:token/tests', async (c) => {
 
     return c.json({ tests });
   } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.code === 'ERR_JWT_EXPIRED' || error.name === 'TokenExpiredError') {
       return c.json({ message: 'Audit link has expired' }, 410);
     }
     return c.json({ message: 'Invalid audit token' }, 401);
@@ -176,7 +198,7 @@ auditMode.get('/:token/tests', async (c) => {
 auditMode.get('/:token/traceability', async (c) => {
   try {
     const { token } = c.req.param();
-    const payload = verifyAuditToken(token);
+    const payload = await verifyAuditToken(token);
 
     const requirements = await prisma.requirement.findMany({
       where: { projectId: payload.projectId },
@@ -192,7 +214,7 @@ auditMode.get('/:token/traceability', async (c) => {
 
     return c.json({ requirements, tests, links });
   } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.code === 'ERR_JWT_EXPIRED' || error.name === 'TokenExpiredError') {
       return c.json({ message: 'Audit link has expired' }, 410);
     }
     return c.json({ message: 'Invalid audit token' }, 401);
@@ -202,7 +224,7 @@ auditMode.get('/:token/traceability', async (c) => {
 auditMode.get('/:token/evidence', async (c) => {
   try {
     const { token } = c.req.param();
-    const payload = verifyAuditToken(token);
+    const payload = await verifyAuditToken(token);
 
     const evidence = await prisma.evidence.findMany({
       where: { projectId: payload.projectId },
@@ -222,7 +244,7 @@ auditMode.get('/:token/evidence', async (c) => {
 
     return c.json({ evidence });
   } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.code === 'ERR_JWT_EXPIRED' || error.name === 'TokenExpiredError') {
       return c.json({ message: 'Audit link has expired' }, 410);
     }
     return c.json({ message: 'Invalid audit token' }, 401);
@@ -232,7 +254,7 @@ auditMode.get('/:token/evidence', async (c) => {
 auditMode.get('/:token/audit-trail', async (c) => {
   try {
     const { token } = c.req.param();
-    const payload = verifyAuditToken(token);
+    const payload = await verifyAuditToken(token);
 
     const trail = await prisma.auditLog.findMany({
       where: { projectId: payload.projectId },
@@ -241,7 +263,7 @@ auditMode.get('/:token/audit-trail', async (c) => {
 
     return c.json({ trail });
   } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.code === 'ERR_JWT_EXPIRED' || error.name === 'TokenExpiredError') {
       return c.json({ message: 'Audit link has expired' }, 410);
     }
     return c.json({ message: 'Invalid audit token' }, 401);
@@ -251,7 +273,7 @@ auditMode.get('/:token/audit-trail', async (c) => {
 auditMode.get('/:token/signatures', async (c) => {
   try {
     const { token } = c.req.param();
-    const payload = verifyAuditToken(token);
+    const payload = await verifyAuditToken(token);
 
     const signatures = await prisma.signature.findMany({
       where: { projectId: payload.projectId },
@@ -260,7 +282,7 @@ auditMode.get('/:token/signatures', async (c) => {
 
     return c.json({ signatures });
   } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.code === 'ERR_JWT_EXPIRED' || error.name === 'TokenExpiredError') {
       return c.json({ message: 'Audit link has expired' }, 410);
     }
     return c.json({ message: 'Invalid audit token' }, 401);
@@ -270,7 +292,7 @@ auditMode.get('/:token/signatures', async (c) => {
 auditMode.get('/:token/report', async (c) => {
   try {
     const { token } = c.req.param();
-    const payload = verifyAuditToken(token);
+    const payload = await verifyAuditToken(token);
 
     const project = await prisma.project.findUnique({
       where: { id: payload.projectId },
@@ -310,7 +332,7 @@ auditMode.get('/:token/report', async (c) => {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>QAtrial Audit Report - ${project.name}</title>
+  <title>Nathara UQMP Audit Report - ${project.name}</title>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 40px 20px; color: #1a1a2e; }
     h1 { color: #6366f1; border-bottom: 2px solid #6366f1; padding-bottom: 8px; }
@@ -331,7 +353,7 @@ auditMode.get('/:token/report', async (c) => {
   </style>
 </head>
 <body>
-  <h1>QAtrial Audit Report</h1>
+  <h1>Nathara UQMP Audit Report</h1>
   <p class="meta">Project: <strong>${project.name}</strong> | Generated: ${new Date().toISOString()} | Read-Only Audit View</p>
 
   <div class="summary-grid">
@@ -382,14 +404,14 @@ auditMode.get('/:token/report', async (c) => {
   </table>
 
   <div class="footer">
-    <p>This report was generated by QAtrial Audit Mode. All data is read-only and represents a point-in-time snapshot.</p>
+    <p>This report was generated by Nathara UQMP Audit Mode. All data is read-only and represents a point-in-time snapshot.</p>
   </div>
 </body>
 </html>`;
 
     return c.html(html);
   } catch (error: any) {
-    if (error.name === 'TokenExpiredError') {
+    if (error.code === 'ERR_JWT_EXPIRED' || error.name === 'TokenExpiredError') {
       return c.json({ message: 'Audit link has expired' }, 410);
     }
     return c.json({ message: 'Invalid audit token' }, 401);

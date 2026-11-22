@@ -25,7 +25,7 @@ export const useLocaleStore = create<LocaleState>()(
       },
     }),
     {
-      name: 'qatrial:locale',
+      name: 'nathara-uqmp:locale',
       onRehydrateStorage: () => (state) => {
         if (state?.language && state.language !== i18next.language) {
           i18next.changeLanguage(state.language);

@@ -1,7 +1,7 @@
 # Installation Qualification (IQ) Protocol
 
 **Document ID:** QA-VAL-IQ-001
-**System:** QAtrial v3.0.0
+**System:** Nathara UQMP v3.0.0
 **Date:** _______________
 **Prepared by:** _______________
 
@@ -9,11 +9,11 @@
 
 ## 1. Purpose
 
-The purpose of this Installation Qualification (IQ) protocol is to verify that QAtrial has been installed correctly and that all components required for system operation are present, properly configured, and functioning in the target environment.
+The purpose of this Installation Qualification (IQ) protocol is to verify that Nathara UQMP has been installed correctly and that all components required for system operation are present, properly configured, and functioning in the target environment.
 
 ## 2. Scope
 
-This protocol covers the installation verification of the following QAtrial components:
+This protocol covers the installation verification of the following Nathara UQMP components:
 
 - **Application Server** -- Node.js runtime and Hono HTTP server
 - **Database** -- PostgreSQL database instance and schema
@@ -47,9 +47,9 @@ This protocol covers the installation verification of the following QAtrial comp
 | Field | Value |
 |-------|-------|
 | **Test ID** | IQ-001 |
-| **Description** | Verify the QAtrial server starts without errors |
+| **Description** | Verify the Nathara UQMP server starts without errors |
 | **Procedure** | Run `npm run server` (standalone) or `docker-compose up` (containerized) |
-| **Expected Result** | Console displays "QAtrial API running on http://localhost:3001" with no error messages |
+| **Expected Result** | Console displays "Nathara UQMP API running on http://localhost:3001" with no error messages |
 | **Actual Result** | _______________ |
 | **Status** | - [ ] Pass / - [ ] Fail |
 | **Tester** | _______________ |
@@ -88,7 +88,7 @@ This protocol covers the installation verification of the following QAtrial comp
 | **Test ID** | IQ-004 |
 | **Description** | Verify the frontend application loads in a browser |
 | **Procedure** | Open http://localhost:5174 (dev) or http://localhost:3001 (production) in a supported browser |
-| **Expected Result** | QAtrial login/landing page renders without JavaScript errors |
+| **Expected Result** | Nathara UQMP login/landing page renders without JavaScript errors |
 | **Actual Result** | _______________ |
 | **Status** | - [ ] Pass / - [ ] Fail |
 | **Tester** | _______________ |

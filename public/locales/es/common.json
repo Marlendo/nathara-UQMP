@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "QAtrial",
+    "name": "Nathara UQMP",
     "newProject": "Nuevo proyecto"
   },
   "nav": {
@@ -202,8 +202,8 @@
     "portfolioHealth_on_track": "En camino",
     "portfolioHealth_at_risk": "En riesgo",
     "portfolioHealth_blocked": "Bloqueado",
-    "portfolioEnterpriseTitle": "QAtrial Enterprise",
-    "portfolioEnterpriseDesc": "Esta funcionalidad requiere QAtrial Enterprise para gestión multi-proyecto. Contacta a tu gestor de cuenta para gestionar múltiples proyectos, comparar preparación entre sitios y generar informes de cumplimiento consolidados."
+    "portfolioEnterpriseTitle": "Nathara UQMP Enterprise",
+    "portfolioEnterpriseDesc": "Esta funcionalidad requiere Nathara UQMP Enterprise para gestión multi-proyecto. Contacta a tu gestor de cuenta para gestionar múltiples proyectos, comparar preparación entre sitios y generar informes de cumplimiento consolidados."
   },
   "statuses": {
     "Draft": "Borrador",

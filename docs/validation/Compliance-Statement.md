@@ -1,7 +1,7 @@
 # Statement of Compliance
 
 **Document ID:** QA-VAL-CS-001
-**System:** QAtrial v3.0.0
+**System:** Nathara UQMP v3.0.0
 **Date:** _______________
 **Prepared by:** _______________
 
@@ -9,22 +9,22 @@
 
 ## 1. System Description
 
-**QAtrial** is an open-source, AI-powered quality management platform designed for regulated industries. It provides a comprehensive workspace for managing requirements, tests, risks, CAPAs, and compliance documentation with full audit trail and electronic signature capabilities.
+**Nathara UQMP** is an open-source, AI-powered quality management platform designed for regulated industries. It provides a comprehensive workspace for managing requirements, tests, risks, CAPAs, and compliance documentation with full audit trail and electronic signature capabilities.
 
 | Attribute | Value |
 |-----------|-------|
-| **Product Name** | QAtrial |
+| **Product Name** | Nathara UQMP |
 | **Version** | 3.0.0 |
 | **License** | AGPL-3.0-only |
 | **Architecture** | Web application (React frontend, Hono/Node.js backend, PostgreSQL database) |
 | **Deployment Options** | Standalone, Docker, Kubernetes |
-| **Source Code** | https://github.com/MeyerThorsten/QAtrial |
+| **Source Code** | https://github.com/MeyerThorsten/Nathara UQMP |
 
 ## 2. Regulatory Alignment
 
 ### 2.1 21 CFR Part 11 -- Electronic Records and Electronic Signatures
 
-| Requirement | Section | QAtrial Implementation | Status |
+| Requirement | Section | Nathara UQMP Implementation | Status |
 |-------------|---------|----------------------|--------|
 | System validation | 11.10(a) | IQ/OQ/PQ protocols provided; automated test suite | ✅ Supported |
 | Legible, readily retrievable records | 11.10(b) | Export to CSV, HTML, and PDF formats | ✅ Supported |
@@ -44,7 +44,7 @@
 
 ### 2.2 EU Annex 11 -- Computerised Systems
 
-| Requirement | Section | QAtrial Implementation | Status |
+| Requirement | Section | Nathara UQMP Implementation | Status |
 |-------------|---------|----------------------|--------|
 | Risk management | §1 | Risk assessment module with severity, likelihood, detectability; AI-assisted classification | ✅ Supported |
 | Personnel | §2 | RBAC with defined roles and permissions; training documentation | ✅ Supported |
@@ -69,7 +69,7 @@
 | Attribute | Value |
 |-----------|-------|
 | **GAMP Category** | Category 4 -- Configured Product |
-| **Rationale** | QAtrial is a configurable software product. Customers configure it for their specific country, vertical, and module needs without modifying source code. |
+| **Rationale** | Nathara UQMP is a configurable software product. Customers configure it for their specific country, vertical, and module needs without modifying source code. |
 | **Validation Approach** | Risk-based validation per GAMP 5 guidelines |
 | **Validation Documents** | IQ, OQ, PQ protocols provided |
 | **Supplier Assessment** | Open-source; full source code available for audit |
@@ -80,9 +80,9 @@
 
 ### 3.1 Limitations
 
-- QAtrial is a **tool** that supports compliance; it does not guarantee compliance by itself
+- Nathara UQMP is a **tool** that supports compliance; it does not guarantee compliance by itself
 - Compliance depends on proper deployment, configuration, and usage by the customer
-- Electronic signatures in QAtrial use password re-verification; biometric signatures are not supported
+- Electronic signatures in Nathara UQMP use password re-verification; biometric signatures are not supported
 - The AI co-pilot provides suggestions only; all AI outputs must be reviewed and approved by qualified personnel
 - PDF export requires a third-party rendering tool or browser print functionality
 
@@ -92,7 +92,7 @@ The customer is responsible for:
 
 1. **Infrastructure Security** -- Securing the server, network, and database infrastructure
 2. **Backup and Disaster Recovery** -- Implementing and testing backup procedures
-3. **User Training** -- Ensuring all users are trained on QAtrial and relevant SOPs
+3. **User Training** -- Ensuring all users are trained on Nathara UQMP and relevant SOPs
 4. **SOPs and Policies** -- Creating organization-specific standard operating procedures
 5. **Periodic Review** -- Conducting periodic system reviews as required by their QMS
 6. **Change Control** -- Managing updates and configuration changes through a formal change control process
@@ -105,7 +105,7 @@ The customer is responsible for:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | _______________ | _______________ | Initial release for QAtrial v3.0.0 |
+| 1.0 | _______________ | _______________ | Initial release for Nathara UQMP v3.0.0 |
 | | | | |
 | | | | |
 

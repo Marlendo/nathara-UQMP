@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 
 const risks = new Hono();
 
-risks.use('*', authMiddleware);
+risks.use('*', ssoAuthMiddleware);
 
 risks.get('/', async (c) => {
   try {
@@ -33,7 +33,7 @@ risks.get('/', async (c) => {
   }
 });
 
-risks.post('/', requirePermission('canEdit'), async (c) => {
+risks.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -110,7 +110,7 @@ risks.get('/:id', async (c) => {
   }
 });
 
-risks.put('/:id', requirePermission('canEdit'), async (c) => {
+risks.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -170,7 +170,7 @@ risks.put('/:id', requirePermission('canEdit'), async (c) => {
   }
 });
 
-risks.delete('/:id', requirePermission('canDelete'), async (c) => {
+risks.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

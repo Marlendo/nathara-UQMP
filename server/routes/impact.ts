@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { ssoAuthMiddleware } from '../middleware/ssoAuth.js';
 
 const impact = new Hono();
 
-impact.use('*', authMiddleware);
+impact.use('*', ssoAuthMiddleware);
 
 interface GraphNode {
   id: string;

@@ -1,6 +1,6 @@
-# QAtrial User Guide
+# Nathara UQMP User Guide
 
-Complete end-user guide for QAtrial, the regulated quality workspace for GxP-compliant industries.
+Complete end-user guide for Nathara UQMP, the regulated quality workspace for GxP-compliant industries.
 
 ---
 
@@ -47,8 +47,8 @@ Complete end-user guide for QAtrial, the regulated quality workspace for GxP-com
 ### Installation and Running (Frontend Only / Demo Mode)
 
 ```bash
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 npm install
 npm run dev
 ```
@@ -60,8 +60,8 @@ The development server starts on `http://localhost:5173` by default. In this mod
 For multi-user, team-based usage with persistent database storage:
 
 ```bash
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 npm install
 
 # 1. Install PostgreSQL (if not already installed)
@@ -69,10 +69,10 @@ npm install
 #    Linux: sudo apt install postgresql && sudo systemctl start postgresql
 
 # 2. Create the database
-createdb qatrial
+createdb nathara-uqmp
 
 # 3. Set environment variables (add to your .env or shell profile)
-export DATABASE_URL="postgresql://localhost:5432/qatrial"
+export DATABASE_URL="postgresql://localhost:5432/nathara-uqmp"
 export JWT_SECRET="your-secret-key-change-in-production"
 
 # 4. Generate Prisma client and push schema to database
@@ -93,25 +93,25 @@ The backend API runs on `http://localhost:3001`. The frontend connects to it aut
 For production or quick local deployment without installing PostgreSQL:
 
 ```bash
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 
 # Copy and configure environment
 cp .env.example .env
 # Edit .env to set JWT_SECRET, AI keys, SSO config
 
-# Start QAtrial + PostgreSQL
+# Start Nathara UQMP + PostgreSQL
 docker-compose up
 ```
 
-QAtrial is accessible at `http://localhost:3001`. PostgreSQL is managed automatically.
+Nathara UQMP is accessible at `http://localhost:3001`. PostgreSQL is managed automatically.
 
 ### Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `postgresql://localhost:5432/qatrial` | PostgreSQL connection string |
-| `JWT_SECRET` | `qatrial-dev-secret-change-in-production` | Secret key for signing JWT tokens. **Change this in production.** |
+| `DATABASE_URL` | `postgresql://localhost:5432/nathara-uqmp` | PostgreSQL connection string |
+| `JWT_SECRET` | `nathara-uqmp-dev-secret-change-in-production` | Secret key for signing JWT tokens. **Change this in production.** |
 | `VITE_API_URL` | `http://localhost:3001/api` | API base URL used by the frontend to connect to the backend |
 | `AI_PROVIDER_TYPE` | (none) | Server-side AI provider type: `anthropic` or `openai` |
 | `AI_PROVIDER_URL` | (none) | Server-side AI provider base URL |
@@ -126,17 +126,17 @@ QAtrial is accessible at `http://localhost:3001`. PostgreSQL is managed automati
 
 ### First Launch Experience
 
-When you open QAtrial for the first time, you are presented with a **login/registration screen**. After creating an account and logging in, the application detects that no project data exists and automatically presents the **Setup Wizard**.
+When you open Nathara UQMP for the first time, you are presented with a **login/registration screen**. After creating an account and logging in, the application detects that no project data exists and automatically presents the **Setup Wizard**.
 
 The header bar shows:
-- **QAtrial** branding with the project name (once created)
+- **Nathara UQMP** branding with the project name (once created)
 - Navigation tabs: Requirements, Tests, Evaluation (Dashboard), Reports
 - Toolbar: Audit Trail button, Share Audit Link (admin), Settings (gear icon), Language Selector, Theme Toggle, New Project, Import/Export
 - User menu: Displays current user name and role, with login/logout options
 
 ### Language Selection
 
-QAtrial supports 12 fully translated languages:
+Nathara UQMP supports 12 fully translated languages:
 
 | Language | Code |
 |----------|------|
@@ -161,7 +161,7 @@ To switch languages, click the **Language Selector** dropdown in the header bar.
 
 ### Operating Modes
 
-QAtrial supports two operating modes for authentication:
+Nathara UQMP supports two operating modes for authentication:
 
 | Mode | When Active | How It Works |
 |------|-------------|--------------|
@@ -195,14 +195,14 @@ When SSO is configured (see Settings > SSO), a **"Sign in with SSO"** button app
 1. Click **Sign in with SSO**
 2. You are redirected to your identity provider (Okta, Azure AD, Auth0, Keycloak, Google Workspace)
 3. Authenticate with your corporate credentials
-4. You are redirected back to QAtrial with an active session
-5. On first SSO login, a QAtrial user account is auto-provisioned with the configured default role
+4. You are redirected back to Nathara UQMP with an active session
+5. On first SSO login, a Nathara UQMP user account is auto-provisioned with the configured default role
 
 SSO is configured by the system administrator via environment variables. See [Section 14: Settings](#14-settings) for details.
 
 ### User Roles
 
-QAtrial uses a 5-role RBAC model with a permission matrix:
+Nathara UQMP uses a 5-role RBAC model with a permission matrix:
 
 | Role | View | Edit | Approve | Admin |
 |------|------|------|---------|-------|
@@ -224,13 +224,13 @@ QAtrial uses a 5-role RBAC model with a permission matrix:
 1. Enter your **Email** and **Password**
 2. Click **Login**
 3. The server returns a JWT access token (valid 24 hours) and a refresh token (valid 7 days)
-4. The access token is stored in `localStorage` under `qatrial:token` and sent with every API request
+4. The access token is stored in `localStorage` under `nathara-uqmp:token` and sent with every API request
 5. When the access token expires, it is automatically refreshed using the refresh token
 
 **localStorage Mode:**
 1. Enter your **Email** and **Password**
 2. Click **Login**
-3. Your session persists in `localStorage` under `qatrial:auth` until you log out
+3. Your session persists in `localStorage` under `nathara-uqmp:auth` until you log out
 
 ### Inviting Users (API Mode, Admin Only)
 
@@ -495,7 +495,7 @@ Each test row shows its linked requirements in a compact format. Click on a link
 
 ### Importing Data (3-Step Wizard)
 
-QAtrial supports importing requirements and tests from CSV, TSV, and XLSX-as-CSV files.
+Nathara UQMP supports importing requirements and tests from CSV, TSV, and XLSX-as-CSV files.
 
 **Step 1: Upload**
 1. Navigate to the header toolbar and click **Import**
@@ -505,7 +505,7 @@ QAtrial supports importing requirements and tests from CSV, TSV, and XLSX-as-CSV
 
 **Step 2: Map Columns**
 1. The wizard shows detected columns and sample rows
-2. For each column, select the corresponding QAtrial field (title, description, status, tags, risk level, regulatory ref)
+2. For each column, select the corresponding Nathara UQMP field (title, description, status, tags, risk level, regulatory ref)
 3. The system auto-suggests mappings based on header names (e.g., a column named "Title" maps to the title field)
 4. A preview of the first 3 mapped rows is shown for verification
 
@@ -645,7 +645,7 @@ The Portfolio tab provides a multi-project overview table showing:
 - Requirement and test counts
 - Last updated timestamp
 
-Note: This is an **enterprise feature**. The current version displays a placeholder indicating that QAtrial Enterprise is required for multi-project management.
+Note: This is an **enterprise feature**. The current version displays a placeholder indicating that Nathara UQMP Enterprise is required for multi-project management.
 
 ---
 
@@ -926,7 +926,7 @@ open --> investigation --> in_progress --> verification --> resolved --> closed
 
 ### Electronic Signatures
 
-Electronic signatures in QAtrial follow the 21 CFR Part 11 and EU Annex 11 model. Signatures use the **real user identity** from `useAuthStore` (localStorage mode) or from the JWT token (API mode).
+Electronic signatures in Nathara UQMP follow the 21 CFR Part 11 and EU Annex 11 model. Signatures use the **real user identity** from `useAuthStore` (localStorage mode) or from the JWT token (API mode).
 
 **When to use:** Apply a signature when formally authoring, reviewing, approving, verifying, or rejecting a requirement, test, or report section.
 
@@ -953,7 +953,7 @@ The signature is permanently recorded in the audit trail with the signer's name,
 
 ### Audit Trail
 
-QAtrial maintains a comprehensive audit trail of all actions. In API mode, audit entries are stored in an **append-only PostgreSQL table** (`AuditLog`) that cannot be modified or deleted through the API. Access the audit trail via the **Audit Trail** button in the header.
+Nathara UQMP maintains a comprehensive audit trail of all actions. In API mode, audit entries are stored in an **append-only PostgreSQL table** (`AuditLog`) that cannot be modified or deleted through the API. Access the audit trail via the **Audit Trail** button in the header.
 
 **Viewing:**
 - Entries are displayed in a timeline format, newest first
@@ -1078,7 +1078,7 @@ Configure LLM providers for AI features. See [Section 8: AI Features](#8-ai-feat
 
 ### Webhooks Tab
 
-Configure webhooks to receive notifications when events occur in QAtrial.
+Configure webhooks to receive notifications when events occur in Nathara UQMP.
 
 1. Click **Add Webhook**
 2. Enter a **Name** and **URL** (the endpoint that will receive POST requests)
@@ -1093,7 +1093,7 @@ Configure webhooks to receive notifications when events occur in QAtrial.
 5. Click **Save**
 6. Use the **Test** button to send a test payload to your endpoint
 
-Webhooks include an HMAC-SHA256 signature in the `X-QAtrial-Signature` header for payload verification.
+Webhooks include an HMAC-SHA256 signature in the `X-Nathara UQMP-Signature` header for payload verification.
 
 ### Integrations Tab
 
@@ -1106,7 +1106,7 @@ Configure connections to external systems.
 4. Enter the **Project Key** to sync with
 5. Click **Connect** -- the system validates the connection
 6. Once connected, you can:
-   - Sync requirements bidirectionally (QAtrial requirement to Jira issue)
+   - Sync requirements bidirectionally (Nathara UQMP requirement to Jira issue)
    - Import Jira issues as requirements
    - View sync status
 
@@ -1141,7 +1141,7 @@ Compatible identity providers: Okta, Azure AD/Entra ID, Auth0, Keycloak, Google 
 
 ### Overview
 
-QAtrial provides a connector framework for integrating with external systems. In addition to the Jira and GitHub integrations (see [Settings](#14-settings)), the framework supports additional connectors.
+Nathara UQMP provides a connector framework for integrating with external systems. In addition to the Jira and GitHub integrations (see [Settings](#14-settings)), the framework supports additional connectors.
 
 ### Configuring a Connector
 
@@ -1157,7 +1157,7 @@ QAtrial provides a connector framework for integrating with external systems. In
    - **Name:** A descriptive name for this connection
    - **Base URL:** The API endpoint for the external system
    - **Credentials:** API key, token, or authentication details
-   - **Field Mappings:** Map QAtrial fields to external system fields
+   - **Field Mappings:** Map Nathara UQMP fields to external system fields
 6. Click **Test Connection** to verify connectivity
 7. Click **Save**
 
@@ -1197,7 +1197,7 @@ Sync records are stored in `useConnectorStore` and can be reviewed for troublesh
 
 ### Data Persistence
 
-QAtrial supports two persistence modes:
+Nathara UQMP supports two persistence modes:
 
 **localStorage Mode (Standalone/Demo)**
 
@@ -1205,21 +1205,21 @@ All data is stored in the browser's `localStorage` under these keys:
 
 | Key | Contents |
 |-----|----------|
-| `qatrial:project` | Project metadata |
-| `qatrial:requirements` | Requirements array and counter |
-| `qatrial:tests` | Tests array and counter |
-| `qatrial:audit` | Audit trail entries |
-| `qatrial:llm` | LLM provider configurations and usage stats |
-| `qatrial:theme` | Light/dark theme preference |
-| `qatrial:locale` | Selected language and country |
-| `qatrial:change-control` | Change control configuration |
-| `qatrial:auth` | User profile, session, and authentication state |
-| `qatrial:risks` | Persisted risk assessments |
-| `qatrial:capa` | CAPA records and lifecycle state |
-| `qatrial:gaps` | Gap analysis runs and results |
-| `qatrial:evidence` | Evidence attachments |
-| `qatrial:ai-history` | AI artifact provenance and usage statistics |
-| `qatrial:connectors` | Connector configurations and sync records |
+| `nathara-uqmp:project` | Project metadata |
+| `nathara-uqmp:requirements` | Requirements array and counter |
+| `nathara-uqmp:tests` | Tests array and counter |
+| `nathara-uqmp:audit` | Audit trail entries |
+| `nathara-uqmp:llm` | LLM provider configurations and usage stats |
+| `nathara-uqmp:theme` | Light/dark theme preference |
+| `nathara-uqmp:locale` | Selected language and country |
+| `nathara-uqmp:change-control` | Change control configuration |
+| `nathara-uqmp:auth` | User profile, session, and authentication state |
+| `nathara-uqmp:risks` | Persisted risk assessments |
+| `nathara-uqmp:capa` | CAPA records and lifecycle state |
+| `nathara-uqmp:gaps` | Gap analysis runs and results |
+| `nathara-uqmp:evidence` | Evidence attachments |
+| `nathara-uqmp:ai-history` | AI artifact provenance and usage statistics |
+| `nathara-uqmp:connectors` | Connector configurations and sync records |
 
 Data persists across browser sessions. Clearing browser data or localStorage will erase all project data.
 
@@ -1244,7 +1244,7 @@ When the backend server is running, data is stored in PostgreSQL across 15 datab
 | `Webhook` | Webhook configurations with events and HMAC secrets |
 | `Integration` | External integration configurations (Jira, GitHub) |
 
-In PostgreSQL mode, data persists across browser sessions and devices. Multiple users can work on the same project simultaneously. The JWT access token is stored in `localStorage` under `qatrial:token`.
+In PostgreSQL mode, data persists across browser sessions and devices. Multiple users can work on the same project simultaneously. The JWT access token is stored in `localStorage` under `nathara-uqmp:token`.
 
 ### Theme Switching
 
@@ -1262,8 +1262,8 @@ Use the **Language Selector** dropdown in the header to switch between 12 suppor
 
 ```bash
 # Clone the repository
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 
 # Copy environment template
 cp .env.example .env
@@ -1273,17 +1273,17 @@ cp .env.example .env
 # - Set AI_PROVIDER_KEY if using AI features
 # - Set SSO_* variables if using SSO
 
-# Start QAtrial + PostgreSQL
+# Start Nathara UQMP + PostgreSQL
 docker-compose up -d
 ```
 
-QAtrial is accessible at `http://localhost:3001`.
+Nathara UQMP is accessible at `http://localhost:3001`.
 
 ### What Docker Compose Provides
 
 | Service | Image | Purpose |
 |---------|-------|---------|
-| `app` | Built from `Dockerfile` | QAtrial application (frontend + backend) |
+| `app` | Built from `Dockerfile` | Nathara UQMP application (frontend + backend) |
 | `db` | `postgres:16-alpine` | PostgreSQL database |
 
 **Volumes:**
@@ -1315,7 +1315,7 @@ In production mode, the server serves the built frontend as static files from th
 
 ## 18. Demo Projects
 
-QAtrial includes 16 realistic demo projects spanning different countries, verticals, and project types. Loading a demo pre-fills the Setup Wizard with all fields.
+Nathara UQMP includes 16 realistic demo projects spanning different countries, verticals, and project types. Loading a demo pre-fills the Setup Wizard with all fields.
 
 ### Available Demo Projects
 

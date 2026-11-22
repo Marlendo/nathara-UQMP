@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { findAccessibleProject, listAccessibleProjectIds } from '../lib/projectAccess.js';
-import { authMiddleware, getUser, requirePermission, roleHasPermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, roleHasPermission, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { createNotification } from './notifications.js';
 
 const tasks = new Hono();
 
-tasks.use('*', authMiddleware);
+tasks.use('*', ssoAuthMiddleware);
 
 // GET / — list tasks (filter by projectId, assigneeId, status)
 tasks.get('/', async (c) => {
@@ -91,7 +91,7 @@ tasks.get('/overdue', async (c) => {
 });
 
 // POST / — create task
-tasks.post('/', requirePermission('canEdit'), async (c) => {
+tasks.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -197,7 +197,7 @@ tasks.put('/:id', async (c) => {
 });
 
 // DELETE /:id
-tasks.delete('/:id', requirePermission('canDelete'), async (c) => {
+tasks.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

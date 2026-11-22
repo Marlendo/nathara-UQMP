@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser } from '../middleware/ssoAuth.js';
 import { realtimeService } from '../services/realtime.service.js';
 
 const presence = new Hono();
-presence.use('*', authMiddleware);
+presence.use('*', ssoAuthMiddleware);
 
 // GET /:projectId — list online users in project
 presence.get('/:projectId', async (c) => {

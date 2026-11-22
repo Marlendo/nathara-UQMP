@@ -1,7 +1,7 @@
 /**
  * External QMS/ALM Connector Interface Definitions
  *
- * These interfaces define the contract for integrating QAtrial with
+ * These interfaces define the contract for integrating Nathara UQMP with
  * external quality management and application lifecycle management systems.
  * Connectors are implemented as plugins that register with the connector registry.
  */
@@ -49,7 +49,7 @@ export interface ConnectorConfig {
 // ── Field mapping ────────────────────────────────────────────────────────────
 
 export interface FieldMapping {
-  /** QAtrial field path (e.g., 'requirement.title') */
+  /** Nathara UQMP field path (e.g., 'requirement.title') */
   sourceField: string;
   /** External system field path (e.g., 'issue.summary') */
   targetField: string;
@@ -66,9 +66,9 @@ export type SyncEntityType = 'requirement' | 'test' | 'defect' | 'risk' | 'capa'
 export interface SyncRecord {
   id: string;
   connectorId: string;
-  /** QAtrial entity type */
+  /** Nathara UQMP entity type */
   entityType: SyncEntityType;
-  /** QAtrial entity ID */
+  /** Nathara UQMP entity ID */
   localId: string;
   /** External system entity ID */
   remoteId: string;
@@ -108,7 +108,7 @@ export interface Connector {
   testConnection: (config: ConnectorConfig) => Promise<{ ok: boolean; error?: string }>;
   /** Push local changes to external system */
   push: (config: ConnectorConfig, entities: SyncEntity[]) => Promise<SyncResult>;
-  /** Pull remote changes into QAtrial */
+  /** Pull remote changes into Nathara UQMP */
   pull: (config: ConnectorConfig) => Promise<SyncResult>;
   /** Get available fields from external system (for mapping UI) */
   getRemoteFields: (config: ConnectorConfig) => Promise<RemoteField[]>;

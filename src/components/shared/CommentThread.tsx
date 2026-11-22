@@ -12,7 +12,7 @@ interface CommentThreadProps {
   projectId: string;
 }
 
-const LS_KEY = 'qatrial:comments';
+const LS_KEY = 'nathara-uqmp:comments';
 
 function getLocalComments(entityType: string, entityId: string): Comment[] {
   try {

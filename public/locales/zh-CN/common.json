@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "QAtrial",
+    "name": "Nathara UQMP",
     "newProject": "新建项目"
   },
   "nav": {
@@ -202,8 +202,8 @@
     "portfolioHealth_on_track": "正常",
     "portfolioHealth_at_risk": "有风险",
     "portfolioHealth_blocked": "已阻止",
-    "portfolioEnterpriseTitle": "QAtrial Enterprise",
-    "portfolioEnterpriseDesc": "此功能需要QAtrial Enterprise进行多项目管理。请联系您的客户经理以管理多个项目、比较各站点的准备就绪情况并生成综合合规报告。"
+    "portfolioEnterpriseTitle": "Nathara UQMP Enterprise",
+    "portfolioEnterpriseDesc": "此功能需要Nathara UQMP Enterprise进行多项目管理。请联系您的客户经理以管理多个项目、比较各站点的准备就绪情况并生成综合合规报告。"
   },
   "statuses": {
     "Draft": "草稿",

@@ -2,9 +2,9 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ include "qatrial.fullname" . }}
+  name: {{ include "nathara-uqmp.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "qatrial.name" . }}
+    app.kubernetes.io/name: {{ include "nathara-uqmp.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
   {{- with .Values.ingress.annotations }}
   annotations:
@@ -34,7 +34,7 @@ spec:
             pathType: {{ .pathType }}
             backend:
               service:
-                name: {{ include "qatrial.fullname" $ }}
+                name: {{ include "nathara-uqmp.fullname" $ }}
                 port:
                   name: http
           {{- end }}

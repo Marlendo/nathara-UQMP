@@ -1,6 +1,6 @@
-# QAtrial Regulatory Reference
+# Nathara UQMP Regulatory Reference
 
-Reference guide for the regulatory standards and frameworks used in QAtrial's templates.
+Reference guide for the regulatory standards and frameworks used in Nathara UQMP's templates.
 
 ---
 
@@ -760,7 +760,7 @@ Reference guide for the regulatory standards and frameworks used in QAtrial's te
 
 ## 4. Compliance Starter Packs
 
-QAtrial provides 4 pre-configured compliance starter packs that bundle a regulatory framework into a one-click wizard setup:
+Nathara UQMP provides 4 pre-configured compliance starter packs that bundle a regulatory framework into a one-click wizard setup:
 
 ### FDA Software Validation (GAMP 5)
 
@@ -824,17 +824,17 @@ QAtrial provides 4 pre-configured compliance starter packs that bundle a regulat
 
 ## 5. Validation Package
 
-QAtrial includes a complete validation documentation package in `docs/validation/` suitable for regulatory inspection and audit purposes. These documents support IQ/OQ/PQ qualification of QAtrial as a GxP computerised system.
+Nathara UQMP includes a complete validation documentation package in `docs/validation/` suitable for regulatory inspection and audit purposes. These documents support IQ/OQ/PQ qualification of Nathara UQMP as a GxP computerised system.
 
 ### Document Overview
 
 | Document | File | Purpose |
 |----------|------|---------|
-| **Installation Qualification (IQ)** | `docs/validation/IQ.md` | Verifies that QAtrial is correctly installed and configured |
-| **Operational Qualification (OQ)** | `docs/validation/OQ.md` | Verifies that QAtrial functions correctly per its specifications |
+| **Installation Qualification (IQ)** | `docs/validation/IQ.md` | Verifies that Nathara UQMP is correctly installed and configured |
+| **Operational Qualification (OQ)** | `docs/validation/OQ.md` | Verifies that Nathara UQMP functions correctly per its specifications |
 | **Performance Qualification (PQ)** | `docs/validation/PQ.md` | Template for customer-specific validation in the production environment |
-| **Compliance Statement** | `docs/validation/Compliance-Statement.md` | Maps QAtrial features to regulatory requirements |
-| **Traceability Matrix** | `docs/validation/Traceability-Matrix.md` | Maps regulatory requirements to QAtrial features and test IDs |
+| **Compliance Statement** | `docs/validation/Compliance-Statement.md` | Maps Nathara UQMP features to regulatory requirements |
+| **Traceability Matrix** | `docs/validation/Traceability-Matrix.md` | Maps regulatory requirements to Nathara UQMP features and test IDs |
 
 ### Installation Qualification (IQ) -- 9 Test Steps
 
@@ -882,7 +882,7 @@ The PQ document is a template with blanks for:
 
 ### Compliance Statement
 
-The Compliance Statement maps QAtrial features to three regulatory frameworks:
+The Compliance Statement maps Nathara UQMP features to three regulatory frameworks:
 
 **21 CFR Part 11 -- Electronic Records and Electronic Signatures (15 sections):**
 - 11.10(a) through 11.10(k) -- System validation, record protection, audit trail, access control, etc.
@@ -900,7 +900,7 @@ The Compliance Statement maps QAtrial features to three regulatory frameworks:
 ### Traceability Matrix
 
 The Traceability Matrix maps **75 regulatory requirements** across 6 standards to:
-- QAtrial features that implement or support each requirement
+- Nathara UQMP features that implement or support each requirement
 - IQ/OQ/PQ test step IDs that verify compliance
 - Implementation status (Supported / Partial / Customer Responsibility)
 
@@ -918,7 +918,7 @@ Standards covered:
 
 ### Real Signature Verification
 
-QAtrial implements proper identity-based electronic signatures:
+Nathara UQMP implements proper identity-based electronic signatures:
 
 - **Real user identity:** Signatures pull the authenticated user's name, role, and ID from `useAuthStore`, replacing placeholder values
 - **Password re-authentication:** Users must re-enter their password at the point of signing, with a 15-minute validity window per 21 CFR Part 11.200(a)

@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const training = new Hono();
 
-training.use('*', authMiddleware);
+training.use('*', ssoAuthMiddleware);
 
 async function findAccessibleCourse(id: string, orgId: string | null) {
   if (!orgId) {
@@ -41,7 +41,7 @@ training.get('/plans', async (c) => {
 });
 
 // Create training plan
-training.post('/plans', requirePermission('canEdit'), async (c) => {
+training.post('/plans', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -96,7 +96,7 @@ training.get('/courses', async (c) => {
 });
 
 // Create course
-training.post('/courses', requirePermission('canEdit'), async (c) => {
+training.post('/courses', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -163,7 +163,7 @@ training.get('/records', async (c) => {
 });
 
 // Assign training (create record)
-training.post('/records', requirePermission('canEdit'), async (c) => {
+training.post('/records', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -198,7 +198,7 @@ training.post('/records', requirePermission('canEdit'), async (c) => {
 });
 
 // Update training record (complete with score, expire)
-training.put('/records/:id', requirePermission('canEdit'), async (c) => {
+training.put('/records/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

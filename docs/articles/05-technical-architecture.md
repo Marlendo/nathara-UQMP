@@ -1,10 +1,10 @@
-# Building a Regulated Quality Platform with React, Zustand, and AI: QAtrial's Technical Architecture
+# Building a Regulated Quality Platform with React, Zustand, and AI: Nathara UQMP's Technical Architecture
 
 *Design decisions, trade-offs, and lessons learned from building a 14,000-line TypeScript application for an audience that cares about audit trails more than animations.*
 
 ---
 
-QAtrial is a regulated quality workspace that runs entirely in the browser. No backend, no database, no authentication server. Just a React 19 single-page application that talks to localStorage for persistence and optionally to LLM APIs for AI features. It manages requirements, tests, risk assessments, electronic signatures, audit trails, and compliance reports for regulated industries across 37 countries and 10 industry verticals.
+Nathara UQMP is a regulated quality workspace that runs entirely in the browser. No backend, no database, no authentication server. Just a React 19 single-page application that talks to localStorage for persistence and optionally to LLM APIs for AI features. It manages requirements, tests, risk assessments, electronic signatures, audit trails, and compliance reports for regulated industries across 37 countries and 10 industry verticals.
 
 This article is a tour through the architecture -- the choices we made, why we made them, and what we would do differently.
 
@@ -12,9 +12,9 @@ This article is a tour through the architecture -- the choices we made, why we m
 
 Three principles shaped every architectural decision:
 
-**Client-first, no server required.** Regulated industries handle sensitive data -- pre-submission regulatory information, proprietary manufacturing processes, clinical trial data. Requiring a cloud account or even a self-hosted server creates barriers to adoption and raises data governance questions. By running entirely in the browser, QAtrial sidesteps these concerns. Your data never leaves your machine unless you explicitly export it or configure an external AI provider.
+**Client-first, no server required.** Regulated industries handle sensitive data -- pre-submission regulatory information, proprietary manufacturing processes, clinical trial data. Requiring a cloud account or even a self-hosted server creates barriers to adoption and raises data governance questions. By running entirely in the browser, Nathara UQMP sidesteps these concerns. Your data never leaves your machine unless you explicitly export it or configure an external AI provider.
 
-**Privacy by default.** The AI features are optional. Without configuring an LLM provider, QAtrial is a fully functional quality management tool. When AI is configured, the application supports local models (via Ollama) that keep data on-network. The choice to send data to an external API is always explicit.
+**Privacy by default.** The AI features are optional. Without configuring an LLM provider, Nathara UQMP is a fully functional quality management tool. When AI is configured, the application supports local models (via Ollama) that keep data on-network. The choice to send data to an external API is always explicit.
 
 **GxP awareness as a cross-cutting concern.** Audit trail, electronic signatures, and change control are not features bolted onto a generic project management tool. They are woven into every state mutation. Creating a requirement logs an audit entry. Modifying a test logs an audit entry with before/after diffs. Deleting anything logs an audit entry. This happens at the store level, not the component level, which means no UI code path can bypass the audit trail.
 
@@ -22,13 +22,13 @@ Three principles shaped every architectural decision:
 
 ### React 19 + TypeScript
 
-Type safety is not optional for regulated software. When a function expects a `RiskLevel` of `"low" | "medium" | "high" | "critical"` and you pass `"Low"`, the compiler catches it. When a `Test` object requires `linkedRequirementIds: string[]` and you forget to initialize it, the compiler catches it. QAtrial defines over 50 TypeScript types in `src/types/index.ts`, and they serve as a living specification of the data model.
+Type safety is not optional for regulated software. When a function expects a `RiskLevel` of `"low" | "medium" | "high" | "critical"` and you pass `"Low"`, the compiler catches it. When a `Test` object requires `linkedRequirementIds: string[]` and you forget to initialize it, the compiler catches it. Nathara UQMP defines over 50 TypeScript types in `src/types/index.ts`, and they serve as a living specification of the data model.
 
 React 19 was chosen for its maturity and ecosystem. The component model maps naturally to the application's UI structure: tables for requirements and tests, modals for creation and editing, dashboards for analytics, and panels for AI interactions.
 
 ### Zustand Over Redux
 
-QAtrial has 9 stores. In Redux, that would mean 9 slices, 9 sets of action creators, 9 reducers, and a combineReducers call to wire them together. Zustand gives us the same functionality with dramatically less boilerplate:
+Nathara UQMP has 9 stores. In Redux, that would mean 9 slices, 9 sets of action creators, 9 reducers, and a combineReducers call to wire them together. Zustand gives us the same functionality with dramatically less boilerplate:
 
 ```typescript
 export const useRequirementsStore = create<RequirementsState>()(
@@ -42,7 +42,7 @@ export const useRequirementsStore = create<RequirementsState>()(
       })),
       // ... more actions
     }),
-    { name: 'qatrial:requirements' }
+    { name: 'nathara-uqmp:requirements' }
   )
 );
 ```
@@ -63,7 +63,7 @@ This was a deliberate choice over component libraries like AG Grid or MUI DataGr
 
 ### i18next with HTTP Backend
 
-QAtrial supports 12 languages with approximately 440 translation keys each. Loading all 12 translation files (5,280+ key-value pairs) in the initial bundle would be wasteful. The `i18next-http-backend` plugin fetches translation files via HTTP from `public/locales/{lng}/common.json` on demand. Only the active language is loaded.
+Nathara UQMP supports 12 languages with approximately 440 translation keys each. Loading all 12 translation files (5,280+ key-value pairs) in the initial bundle would be wasteful. The `i18next-http-backend` plugin fetches translation files via HTTP from `public/locales/{lng}/common.json` on demand. Only the active language is loaded.
 
 The fallback chain is simple: user's selected language, then English. If a key is missing in the selected language, English text appears. This ensures the UI always displays something meaningful, even for partially translated languages.
 
@@ -75,7 +75,7 @@ The seven-tab evaluation dashboard uses pie charts, bar charts, and a custom 5x5
 
 ### Tailwind CSS 4 with @theme
 
-Tailwind CSS 4 introduces `@theme` for registering CSS custom properties as Tailwind tokens. QAtrial defines 50+ color tokens as CSS custom properties at `:root` with dark mode overrides under `.dark`:
+Tailwind CSS 4 introduces `@theme` for registering CSS custom properties as Tailwind tokens. Nathara UQMP defines 50+ color tokens as CSS custom properties at `:root` with dark mode overrides under `.dark`:
 
 ```css
 :root {
@@ -95,7 +95,7 @@ These are mapped to Tailwind utilities via `@theme`, enabling classes like `bg-s
 
 ## The Template Composition Engine
 
-This is the most architecturally interesting part of QAtrial. It solves a combinatorial problem: 37 countries times 10 verticals times 8 project types times 15 optional modules produces an astronomical number of possible configurations, each with a different set of applicable requirements and tests.
+This is the most architecturally interesting part of Nathara UQMP. It solves a combinatorial problem: 37 countries times 10 verticals times 8 project types times 15 optional modules produces an astronomical number of possible configurations, each with a different set of applicable requirements and tests.
 
 ### The Composition Algorithm
 
@@ -157,7 +157,7 @@ async function complete(request: CompletionRequest): Promise<CompletionResponse>
 }
 ```
 
-The OpenAI-compatible path is intentionally broad. It handles OpenAI's own API, OpenRouter (which proxies to dozens of models), and Ollama (which exposes a local OpenAI-compatible endpoint at `http://localhost:11434/v1`). By supporting the OpenAI format as a de facto standard, QAtrial gets broad model compatibility for free.
+The OpenAI-compatible path is intentionally broad. It handles OpenAI's own API, OpenRouter (which proxies to dozens of models), and Ollama (which exposes a local OpenAI-compatible endpoint at `http://localhost:11434/v1`). By supporting the OpenAI format as a de facto standard, Nathara UQMP gets broad model compatibility for free.
 
 ### Purpose-Scoped Routing
 
@@ -179,14 +179,14 @@ Every response records the provider ID and model name, creating auditability fro
 
 | Store | Key | Responsibility |
 |-------|-----|---------------|
-| `useProjectStore` | `qatrial:project` | Project metadata |
-| `useRequirementsStore` | `qatrial:requirements` | Requirements CRUD + counter |
-| `useTestsStore` | `qatrial:tests` | Tests CRUD + requirement links + counter |
-| `useAuditStore` | `qatrial:audit` | Audit trail entries |
-| `useLLMStore` | `qatrial:llm` | Provider configs + token usage |
-| `useThemeStore` | `qatrial:theme` | Light/dark preference |
-| `useLocaleStore` | `qatrial:locale` | Language + country |
-| `useChangeControlStore` | `qatrial:change-control` | Change control config |
+| `useProjectStore` | `nathara-uqmp:project` | Project metadata |
+| `useRequirementsStore` | `nathara-uqmp:requirements` | Requirements CRUD + counter |
+| `useTestsStore` | `nathara-uqmp:tests` | Tests CRUD + requirement links + counter |
+| `useAuditStore` | `nathara-uqmp:audit` | Audit trail entries |
+| `useLLMStore` | `nathara-uqmp:llm` | Provider configs + token usage |
+| `useThemeStore` | `nathara-uqmp:theme` | Light/dark preference |
+| `useLocaleStore` | `nathara-uqmp:locale` | Language + country |
+| `useChangeControlStore` | `nathara-uqmp:change-control` | Change control config |
 | `useImportExport` | N/A | Import/export (not persisted) |
 
 ### Cross-Store Integrity
@@ -251,4 +251,4 @@ The current architecture was designed with these extensions in mind. Zustand sto
 
 The 84-file, 14,000-line codebase is small enough to understand in its entirety and large enough to be useful. That is a good place to start.
 
-QAtrial is available at [github.com/MeyerThorsten/QAtrial](https://github.com/MeyerThorsten/QAtrial).
+Nathara UQMP is available at [github.com/MeyerThorsten/Nathara UQMP](https://github.com/MeyerThorsten/Nathara UQMP).

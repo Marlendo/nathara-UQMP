@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const suppliers = new Hono();
 
-suppliers.use('*', authMiddleware);
+suppliers.use('*', ssoAuthMiddleware);
 
 async function findAccessibleSupplier(id: string, orgId: string | null) {
   if (!orgId) {
@@ -98,7 +98,7 @@ suppliers.get('/:id/scorecard', async (c) => {
 });
 
 // Create supplier
-suppliers.post('/', requirePermission('canEdit'), async (c) => {
+suppliers.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -135,7 +135,7 @@ suppliers.post('/', requirePermission('canEdit'), async (c) => {
 });
 
 // Update supplier (auto-calculate overallScore, auto-requalification)
-suppliers.put('/:id', requirePermission('canEdit'), async (c) => {
+suppliers.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -210,7 +210,7 @@ suppliers.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Delete supplier
-suppliers.delete('/:id', requirePermission('canDelete'), async (c) => {
+suppliers.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -230,7 +230,7 @@ suppliers.delete('/:id', requirePermission('canDelete'), async (c) => {
 });
 
 // Create supplier audit
-suppliers.post('/:id/audits', requirePermission('canEdit'), async (c) => {
+suppliers.post('/:id/audits', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

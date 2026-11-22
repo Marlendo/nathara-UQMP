@@ -1,4 +1,4 @@
-# How AI is Transforming GxP Compliance: Inside QAtrial's Compliance Co-Pilot
+# How AI is Transforming GxP Compliance: Inside Nathara UQMP's Compliance Co-Pilot
 
 *Six AI capabilities, multi-provider routing, and a strict human-in-the-loop principle -- how an open-source tool is rethinking compliance documentation.*
 
@@ -8,7 +8,7 @@ A validation specialist at a mid-size pharmaceutical company spends, on average,
 
 The work is repetitive but high-stakes. A poorly written test case can miss a critical defect. A risk assessment that underestimates severity can lead to patient harm. A gap analysis that overlooks a regulatory clause can result in a warning letter from the FDA or a non-conformity finding from a notified body.
 
-QAtrial's AI compliance co-pilot does not replace the human judgment that these tasks require. What it does is eliminate the blank-page problem. It generates first drafts that are context-aware -- tuned to the specific country, industry vertical, applicable standards, and risk taxonomy of the project -- and then puts every decision in the hands of the quality professional.
+Nathara UQMP's AI compliance co-pilot does not replace the human judgment that these tasks require. What it does is eliminate the blank-page problem. It generates first drafts that are context-aware -- tuned to the specific country, industry vertical, applicable standards, and risk taxonomy of the project -- and then puts every decision in the hands of the quality professional.
 
 ## The Six AI Capabilities
 
@@ -40,7 +40,7 @@ The critical design decision here is that accepted tests are created as real tes
 
 Risk assessment in regulated industries is not one-size-fits-all. Medical device companies use ISO 14971, which focuses on severity and probability of harm to patients. Pharmaceutical companies use ICH Q9, which takes a broader view of quality risk including product quality, regulatory compliance, and business continuity. Software validation projects use GAMP 5's risk-based approach, classifying systems by their impact on product quality and patient safety. Aerospace uses FMEA with detectability as a third dimension.
 
-QAtrial's AI risk classification is aware of these differences. When you classify a requirement's risk, the prompt includes the project's vertical and the associated risk taxonomy. The AI returns:
+Nathara UQMP's AI risk classification is aware of these differences. When you classify a requirement's risk, the prompt includes the project's vertical and the associated risk taxonomy. The AI returns:
 
 - **Severity score** (1-5, from Negligible to Critical)
 - **Likelihood score** (1-5, from Rare to Almost Certain)
@@ -72,7 +72,7 @@ The most powerful feature is the **Generate Requirement** button on each gap. If
 
 When a test fails, the natural next question is: what do we do about it? In regulated industries, the answer is a Corrective and Preventive Action (CAPA) -- a structured investigation that identifies the root cause, implements a fix, and prevents recurrence.
 
-QAtrial's AI CAPA suggestion takes a failed test and its linked requirement as context and generates:
+Nathara UQMP's AI CAPA suggestion takes a failed test and its linked requirement as context and generates:
 
 - **Root Cause Analysis**: What likely caused the failure, based on the test description and expected vs. actual outcome
 - **Containment Action**: What to do immediately to limit the impact
@@ -106,7 +106,7 @@ Sections are labeled as either "AI-generated" or "data-assembled," and each can 
 
 ## The Multi-Provider Architecture
 
-QAtrial does not lock you into a single AI vendor. The system supports two provider types:
+Nathara UQMP does not lock you into a single AI vendor. The system supports two provider types:
 
 - **Anthropic**: Native integration with Claude via the Anthropic Messages API
 - **OpenAI-compatible**: Any API that follows the OpenAI Chat Completions format -- this includes OpenAI's own GPT-4, OpenRouter (which provides access to dozens of models), and local Ollama instances
@@ -140,7 +140,7 @@ Every AI response includes the provider ID and model name, creating a chain of t
 
 ## The Human-in-the-Loop Principle
 
-No AI-generated content in QAtrial is automatically applied. Every test case must be accepted or rejected. Every risk classification must be approved or overridden. Every gap analysis suggestion must be reviewed. Every CAPA is a proposal, not an action.
+No AI-generated content in Nathara UQMP is automatically applied. Every test case must be accepted or rejected. Every risk classification must be approved or overridden. Every gap analysis suggestion must be reviewed. Every CAPA is a proposal, not an action.
 
 This is not just a design philosophy -- it is a regulatory requirement. FDA, EMA, and other authorities expect that qualified personnel make quality decisions. AI can accelerate the work, but the accountability remains with the human.
 
@@ -148,7 +148,7 @@ The confidence scoring system reinforces this. Scores above 90% (green) indicate
 
 ## The Privacy Advantage
 
-For organizations with strict data governance requirements -- and in regulated industries, that is most of them -- the ability to run AI entirely locally is not optional. QAtrial supports Ollama, which means you can run a capable open-source model like Llama 3.1 on your own hardware. No API keys, no data leaving your network, no third-party data processing agreements to negotiate.
+For organizations with strict data governance requirements -- and in regulated industries, that is most of them -- the ability to run AI entirely locally is not optional. Nathara UQMP supports Ollama, which means you can run a capable open-source model like Llama 3.1 on your own hardware. No API keys, no data leaving your network, no third-party data processing agreements to negotiate.
 
 The trade-off is capability. Frontier models like Claude and GPT-4 generally produce better results than local models, particularly for complex tasks like gap analysis and report generation. But for organizations where data sovereignty is non-negotiable, having the option to run locally -- even with somewhat lower quality outputs -- is the difference between using AI and not using it at all.
 
@@ -160,4 +160,4 @@ A validation specialist who spends four hours writing test cases for 20 requirem
 
 The tool is open source, the AI integration is provider-agnostic, and the human stays in the loop. That is the model for responsible AI in regulated industries.
 
-QAtrial is available at [github.com/MeyerThorsten/QAtrial](https://github.com/MeyerThorsten/QAtrial).
+Nathara UQMP is available at [github.com/MeyerThorsten/Nathara UQMP](https://github.com/MeyerThorsten/Nathara UQMP).

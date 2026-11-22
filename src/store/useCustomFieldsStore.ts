@@ -74,6 +74,6 @@ export const useCustomFieldsStore = create<CustomFieldsState>()(
         return get().values[entityId] ?? {};
       },
     }),
-    { name: 'qatrial:custom-fields' }
+    { name: 'nathara-uqmp:custom-fields' }
   )
 );

@@ -87,7 +87,7 @@ Four features that block enterprise deals — now implemented.
 
 ### 4. PWA / Mobile Access
 
-- `manifest.json` — standalone PWA manifest with QAtrial branding
+- `manifest.json` — standalone PWA manifest with Nathara UQMP branding
 - `sw.js` — service worker: cache-first for static assets, network-first for API, offline mutation queue via IndexedDB
 - `useOfflineQueue.ts` — React hook for offline mutation queuing with auto-sync on reconnect
 - `index.html` — manifest link, theme-color, apple-mobile-web-app meta tags

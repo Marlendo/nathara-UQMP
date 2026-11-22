@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { apiFetch, getApiBase } from '../lib/apiClient';
+import { apiFetch, getApiBase, getStoredToken } from '../lib/apiClient';
 import type { AuditEntry } from '../types';
 
 interface ServerAuditLog {
@@ -114,7 +114,7 @@ export function useApiAudit(projectId: string) {
         `${getApiBase()}/audit/export?projectId=${encodeURIComponent(projectId)}&format=csv`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('qatrial:token') || ''}`,
+            Authorization: `Bearer ${getStoredToken() || ''}`,
           },
         },
       ).then((r) => r.blob());

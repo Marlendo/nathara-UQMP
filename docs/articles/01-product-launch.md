@@ -1,4 +1,4 @@
-# QAtrial: Open-Source AI-Powered Quality Management for Regulated Industries
+# Nathara UQMP: Open-Source AI-Powered Quality Management for Regulated Industries
 
 *A free, auditable, AI-assisted quality workspace that knows your country's regulations before you open it.*
 
@@ -6,9 +6,9 @@
 
 If you work in pharmaceuticals, medical devices, biotechnology, or any other regulated industry, you already know the pain. Quality documentation consumes weeks. Traceability matrices are maintained in spreadsheets that nobody trusts. Audit preparation is a fire drill. And the commercial tools that promise to fix all of this -- IBM DOORS, Polarion, Jama Connect, MasterControl -- start at price points that make startup founders weep and enterprise procurement cycles drag on for months.
 
-QAtrial is an open-source alternative. It is a regulated quality workspace built with React and TypeScript that runs entirely in your browser, requires no server, and ships with an AI compliance co-pilot that can generate test cases, classify risks, run gap analyses, and draft audit-ready reports. It is published under the AGPL-3.0 license, which means it is free to use, free to inspect, and free to modify -- with the condition that modifications to the source code must be shared back with the community.
+Nathara UQMP is an open-source alternative. It is a regulated quality workspace built with React and TypeScript that runs entirely in your browser, requires no server, and ships with an AI compliance co-pilot that can generate test cases, classify risks, run gap analyses, and draft audit-ready reports. It is published under the AGPL-3.0 license, which means it is free to use, free to inspect, and free to modify -- with the condition that modifications to the source code must be shared back with the community.
 
-## The Problem QAtrial Solves
+## The Problem Nathara UQMP Solves
 
 Regulated industries operate under frameworks like FDA 21 CFR Part 11, EU Annex 11, ISO 13485, ICH Q9, and GAMP 5. These frameworks demand rigorous documentation: every requirement must be traced to a test, every risk must be assessed, every change must be logged with an audit trail, and every critical record must carry an electronic signature.
 
@@ -16,11 +16,11 @@ The work is necessary. Patient safety, product quality, and regulatory complianc
 
 The result is a two-tier system. Large pharmaceutical companies can afford enterprise quality management suites. Everyone else -- startups, small medical device companies, CROs, clinical laboratories -- is left cobbling together solutions that auditors view with justified skepticism.
 
-## What QAtrial Does Differently
+## What Nathara UQMP Does Differently
 
 ### Regulatory Intelligence Built In
 
-QAtrial is not a generic project management tool with a "regulated" label slapped on it. It ships with a four-dimensional template composition engine that generates jurisdiction-specific, industry-specific requirements and test cases at project creation time.
+Nathara UQMP is not a generic project management tool with a "regulated" label slapped on it. It ships with a four-dimensional template composition engine that generates jurisdiction-specific, industry-specific requirements and test cases at project creation time.
 
 The four dimensions are:
 
@@ -35,7 +35,7 @@ This is not a simple lookup table. Templates compose through a layered architect
 
 ### AI Compliance Co-Pilot
 
-QAtrial includes six AI-powered capabilities:
+Nathara UQMP includes six AI-powered capabilities:
 
 - **Test Case Generation**: Point the AI at any requirement and get 4-6 context-aware test cases with steps, expected results, and confidence scores. The prompts are tuned to your country, vertical, and applicable standards.
 - **Risk Classification**: AI-proposed severity and likelihood ratings using the correct risk taxonomy for your vertical -- ISO 14971 for medical devices, ICH Q9 for pharmaceuticals, GAMP 5 for software systems, FMEA for aerospace and laboratories.
@@ -48,9 +48,9 @@ The AI system supports multiple providers -- Anthropic Claude, OpenAI-compatible
 
 ### No Server, No Cloud Dependency
 
-QAtrial runs entirely in the browser. All data is stored in localStorage. There is no database, no backend server, no cloud account required. For organizations handling sensitive clinical data or proprietary manufacturing processes, this is not a limitation -- it is a feature. Your data stays on your machine.
+Nathara UQMP runs entirely in the browser. All data is stored in localStorage. There is no database, no backend server, no cloud account required. For organizations handling sensitive clinical data or proprietary manufacturing processes, this is not a limitation -- it is a feature. Your data stays on your machine.
 
-For teams that need to share data, QAtrial supports JSON import and export with referential integrity validation. A project can be exported, sent to a colleague, and imported without data loss.
+For teams that need to share data, Nathara UQMP supports JSON import and export with referential integrity validation. A project can be exported, sent to a colleague, and imported without data loss.
 
 ### Compliance Features That Actually Work
 
@@ -76,11 +76,11 @@ The entire UI is available in 12 languages: English, German, French, Spanish, It
 
 ## The AGPL-3.0 License
 
-QAtrial is published under the GNU Affero General Public License v3.0. This means:
+Nathara UQMP is published under the GNU Affero General Public License v3.0. This means:
 
 - **Free to use**: No license fees, no per-seat charges, no feature gates
 - **Free to modify**: Adapt the code to your specific needs
-- **Copyleft obligation**: If you modify QAtrial and distribute it or offer it as a network service, you must make your modifications available under the same license
+- **Copyleft obligation**: If you modify Nathara UQMP and distribute it or offer it as a network service, you must make your modifications available under the same license
 - **Full transparency**: Auditors can inspect every line of code that handles their data
 
 For regulated industries, the copyleft requirement is not just a legal obligation -- it is a quality assurance mechanism. It means the community benefits from every improvement, and no one can take the code proprietary without contributing back.
@@ -88,8 +88,8 @@ For regulated industries, the copyleft requirement is not just a legal obligatio
 ## Getting Started
 
 ```bash
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 npm install
 npm run dev
 ```
@@ -98,6 +98,6 @@ The development server starts on `http://localhost:5173`. A six-step setup wizar
 
 ## Contributing
 
-QAtrial is 84 TypeScript source files and 14,000+ lines of code. The template system is designed for community contribution: adding support for a new country means writing a single template file with jurisdiction-specific requirements and tests. Adding a new vertical follows the same pattern.
+Nathara UQMP is 84 TypeScript source files and 14,000+ lines of code. The template system is designed for community contribution: adding support for a new country means writing a single template file with jurisdiction-specific requirements and tests. Adding a new vertical follows the same pattern.
 
-The project is on GitHub at [github.com/MeyerThorsten/QAtrial](https://github.com/MeyerThorsten/QAtrial). Star it, fork it, file issues, submit pull requests. Regulated quality management should not be a luxury reserved for companies that can afford six-figure software contracts.
+The project is on GitHub at [github.com/MeyerThorsten/Nathara UQMP](https://github.com/MeyerThorsten/Nathara UQMP). Star it, fork it, file issues, submit pull requests. Regulated quality management should not be a luxury reserved for companies that can afford six-figure software contracts.

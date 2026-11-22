@@ -21,7 +21,7 @@ const PRIORITY_COLORS: Record<TaskPriority, string> = {
 
 const STATUS_CYCLE: TaskStatus[] = ['open', 'in_progress', 'completed'];
 
-const LS_KEY = 'qatrial:tasks';
+const LS_KEY = 'nathara-uqmp:tasks';
 
 function getLocalTasks(projectId: string, entityType?: string, entityId?: string): QTask[] {
   try {

@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "QAtrial",
+    "name": "Nathara UQMP",
     "newProject": "Nieuw project"
   },
   "nav": {
@@ -202,8 +202,8 @@
     "portfolioHealth_on_track": "Op koers",
     "portfolioHealth_at_risk": "Risicovol",
     "portfolioHealth_blocked": "Geblokkeerd",
-    "portfolioEnterpriseTitle": "QAtrial Enterprise",
-    "portfolioEnterpriseDesc": "Deze functie vereist QAtrial Enterprise voor multi-projectbeheer. Neem contact op met uw accountmanager om meerdere projecten te beheren, gereedheid tussen locaties te vergelijken en geconsolideerde nalevingsrapporten te genereren."
+    "portfolioEnterpriseTitle": "Nathara UQMP Enterprise",
+    "portfolioEnterpriseDesc": "Deze functie vereist Nathara UQMP Enterprise voor multi-projectbeheer. Neem contact op met uw accountmanager om meerdere projecten te beheren, gereedheid tussen locaties te vergelijken en geconsolideerde nalevingsrapporten te genereren."
   },
   "statuses": {
     "Draft": "Concept",

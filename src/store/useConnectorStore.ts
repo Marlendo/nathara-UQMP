@@ -61,7 +61,7 @@ export const useConnectorStore = create<ConnectorState>()(
       },
     }),
     {
-      name: 'qatrial:connectors',
+      name: 'nathara-uqmp:connectors',
       // Don't persist sensitive auth data
       partialize: (state) => ({
         connectors: state.connectors.map((c) => ({

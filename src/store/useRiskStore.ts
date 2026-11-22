@@ -85,6 +85,6 @@ export const useRiskStore = create<RiskState>()(
         return get().assessments.filter((a) => a.requirementId === requirementId);
       },
     }),
-    { name: 'qatrial:risk-assessments' }
+    { name: 'nathara-uqmp:risk-assessments' }
   )
 );

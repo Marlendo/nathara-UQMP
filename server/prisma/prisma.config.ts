@@ -3,9 +3,12 @@ import { defineConfig } from 'prisma/config';
 
 export default defineConfig({
   schema: path.join(__dirname, 'schema.prisma'),
+  datasource: {
+    url: process.env.DATABASE_URL ?? 'postgresql://localhost:5432/nathara-uqmp',
+  },
   migrate: {
     async url() {
-      return process.env.DATABASE_URL ?? 'postgresql://localhost:5432/qatrial';
+      return process.env.DATABASE_URL ?? 'postgresql://localhost:5432/nathara-uqmp';
     },
   },
 });

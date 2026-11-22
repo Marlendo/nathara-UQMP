@@ -50,6 +50,6 @@ export const useChangeControlStore = create<ChangeControlState>()(
         return get().config.requireApprovalFor.includes(entityType);
       },
     }),
-    { name: 'qatrial:change-control' }
+    { name: 'nathara-uqmp:change-control' }
   )
 );

@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser } from '../middleware/ssoAuth.js';
 
 const notifications = new Hono();
 
-notifications.use('*', authMiddleware);
+notifications.use('*', ssoAuthMiddleware);
 
 /**
  * Helper: create a notification (exported for use by other routes).

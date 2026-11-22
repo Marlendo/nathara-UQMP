@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const complaints = new Hono();
 
-complaints.use('*', authMiddleware);
+complaints.use('*', ssoAuthMiddleware);
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   received: ['investigating'],
@@ -157,7 +157,7 @@ complaints.get('/:id', async (c) => {
 });
 
 // Create complaint
-complaints.post('/', requirePermission('canEdit'), async (c) => {
+complaints.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -212,7 +212,7 @@ complaints.post('/', requirePermission('canEdit'), async (c) => {
 });
 
 // Update complaint
-complaints.put('/:id', requirePermission('canEdit'), async (c) => {
+complaints.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -279,7 +279,7 @@ complaints.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Delete complaint
-complaints.delete('/:id', requirePermission('canDelete'), async (c) => {
+complaints.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

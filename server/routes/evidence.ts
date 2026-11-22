@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
@@ -10,7 +10,7 @@ import { randomUUID } from 'crypto';
 
 const evidence = new Hono();
 
-evidence.use('*', authMiddleware);
+evidence.use('*', ssoAuthMiddleware);
 
 const UPLOADS_ROOT = path.resolve(process.cwd(), 'uploads');
 
@@ -21,7 +21,7 @@ function ensureDir(dir: string) {
 }
 
 // POST /upload — multipart form upload
-evidence.post('/upload', requirePermission('canEdit'), async (c) => {
+evidence.post('/upload', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.parseBody();
@@ -234,7 +234,7 @@ evidence.get('/:id/download', async (c) => {
 });
 
 // DELETE /:id — delete file + record
-evidence.delete('/:id', requirePermission('canDelete'), async (c) => {
+evidence.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

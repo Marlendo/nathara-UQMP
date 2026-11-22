@@ -6,7 +6,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
 import { useProjectStore } from '../../store/useProjectStore';
-import { getApiBase } from '../../lib/apiClient';
+import { getApiBase, getStoredToken } from '../../lib/apiClient';
 import { roleHasPermission } from '../../lib/permissions';
 import { getProjectId } from '../../lib/projectUtils';
 
@@ -85,7 +85,7 @@ export function ExportPanel({ open, onClose }: ExportPanelProps) {
       // Server mode: fetch from API
       try {
         const projectId = getProjectId(project);
-        const token = localStorage.getItem('qatrial:token');
+        const token = getStoredToken();
         const res = await fetch(`${getApiBase()}/export/${projectId}/csv?type=${exportType}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
@@ -96,7 +96,7 @@ export function ExportPanel({ open, onClose }: ExportPanelProps) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `qatrial-${exportType}-${projectId.slice(0, 8)}.csv`;
+        a.download = `nathara-uqmp-${exportType}-${projectId.slice(0, 8)}.csv`;
         a.click();
         URL.revokeObjectURL(url);
       } catch {
@@ -115,10 +115,10 @@ export function ExportPanel({ open, onClose }: ExportPanelProps) {
 
     switch (exportType) {
       case 'requirements':
-        triggerDownload(buildRequirementsCsv(), `qatrial-requirements-${name}.csv`);
+        triggerDownload(buildRequirementsCsv(), `nathara-uqmp-requirements-${name}.csv`);
         break;
       case 'tests':
-        triggerDownload(buildTestsCsv(), `qatrial-tests-${name}.csv`);
+        triggerDownload(buildTestsCsv(), `nathara-uqmp-tests-${name}.csv`);
         break;
       case 'all':
         triggerDownload(
@@ -129,7 +129,7 @@ export function ExportPanel({ open, onClose }: ExportPanelProps) {
             '# TESTS',
             buildTestsCsv().replace(CSV_BOM, ''),
           ].join('\n'),
-          `qatrial-all-${name}.csv`,
+          `nathara-uqmp-all-${name}.csv`,
         );
         break;
     }

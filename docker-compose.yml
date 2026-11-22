@@ -1,13 +1,24 @@
-version: '3.8'
-
 services:
   app:
     build: .
+    container_name: uqmp-app
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_URL=postgresql://qatrial:qatrial@db:5432/qatrial
-      - JWT_SECRET=${JWT_SECRET:-qatrial-production-secret-change-me}
+      # Database (nilai via file env VPS — JANGAN bake kredensial di repo)
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL wajib diisi via file env VPS}
+      # SSO Supabase PROD (IdP). service_role HARAM. JWT_SECRET lama HARAM.
+      - SUPABASE_URL=${SUPABASE_URL:-https://api.nathara.ac.id}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
+      - SSO_ISSUER_URL=${SSO_ISSUER_URL:-https://sso.nathara.ac.id}
+      - SSO_JWKS_URL=${SSO_JWKS_URL:-https://api.nathara.ac.id/functions/v1/sso-jwks}
+      - SSO_CLIENT_ID=${SSO_CLIENT_ID:-}
+      - SSO_CLIENT_SECRET=${SSO_CLIENT_SECRET:-}
+      - SSO_CALLBACK_URL=${SSO_CALLBACK_URL:-https://pjm.nathara.ac.id/api/auth/sso/callback}
+      - UQMP_SSO_ALLOWLIST_SUBS=${UQMP_SSO_ALLOWLIST_SUBS:-}
+      # Kunci sesi app baru untuk audit-link signing (via file env VPS)
+      - UQMP_LINK_SECRET=${UQMP_LINK_SECRET:?UQMP_LINK_SECRET wajib diisi via file env VPS}
+      # AI provider NON-AKTIF default (dikosongkan eksplisit + komentar)
       - AI_PROVIDER_TYPE=${AI_PROVIDER_TYPE:-}
       - AI_PROVIDER_URL=${AI_PROVIDER_URL:-}
       - AI_PROVIDER_KEY=${AI_PROVIDER_KEY:-}
@@ -16,24 +27,27 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - uploads:/app/uploads
+      - uqmp-uploads:/app/uploads
     restart: unless-stopped
 
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
+    container_name: uqmp-postgres
     environment:
-      - POSTGRES_USER=qatrial
-      - POSTGRES_PASSWORD=qatrial
-      - POSTGRES_DB=qatrial
+      - POSTGRES_USER=${UQMP_DB_USER:?UQMP_DB_USER wajib diisi via file env VPS}
+      - POSTGRES_PASSWORD=${UQMP_DB_PASSWORD:?UQMP_DB_PASSWORD wajib diisi via file env VPS}
+      - POSTGRES_DB=${UQMP_DB_NAME:?UQMP_DB_NAME wajib diisi via file env VPS}
+    ports:
+      - "54331:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - uqmp-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U qatrial"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
     restart: unless-stopped
 
 volumes:
-  pgdata:
-  uploads:
+  uqmp-pgdata:
+  uqmp-uploads:

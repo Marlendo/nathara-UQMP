@@ -115,6 +115,6 @@ export const useTestsStore = create<TestsState>()(
         set({ tests, testCounter: counter });
       },
     }),
-    { name: 'qatrial:tests' }
+    { name: 'nathara-uqmp:tests' }
   )
 );

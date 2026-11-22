@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { prisma } from '../../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../../middleware/ssoAuth.js';
 
 const github = new Hono();
 
-github.use('*', authMiddleware);
+github.use('*', ssoAuthMiddleware);
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -34,7 +34,7 @@ async function getGithubConfig(orgId: string) {
 
 // ── POST /connect — validate and store GitHub configuration ────────────────
 
-github.post('/connect', requirePermission('canAdmin'), async (c) => {
+github.post('/connect', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -127,7 +127,7 @@ github.get('/status', async (c) => {
 
 // ── POST /link-pr — link a requirement to a GitHub PR ──────────────────────
 
-github.post('/link-pr', requirePermission('canEdit'), async (c) => {
+github.post('/link-pr', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -204,7 +204,7 @@ github.post('/link-pr', requirePermission('canEdit'), async (c) => {
 
 // ── POST /import-results — import test results from GitHub Actions ─────────
 
-github.post('/import-results', requirePermission('canEdit'), async (c) => {
+github.post('/import-results', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();

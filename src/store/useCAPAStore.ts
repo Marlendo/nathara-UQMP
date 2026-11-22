@@ -167,6 +167,6 @@ export const useCAPAStore = create<CAPAState>()(
         };
       },
     }),
-    { name: 'qatrial:capa' }
+    { name: 'nathara-uqmp:capa' }
   )
 );

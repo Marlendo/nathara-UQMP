@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const changecontrol = new Hono();
 
-changecontrol.use('*', authMiddleware);
+changecontrol.use('*', ssoAuthMiddleware);
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   initiated: ['assessment'],
@@ -75,7 +75,7 @@ changecontrol.get('/', async (c) => {
 });
 
 // POST / — create (auto-generate CC-NNN number)
-changecontrol.post('/', requirePermission('canEdit'), async (c) => {
+changecontrol.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -151,7 +151,7 @@ changecontrol.get('/:id', async (c) => {
 });
 
 // PUT /:id — update (with status transition validation)
-changecontrol.put('/:id', requirePermission('canEdit'), async (c) => {
+changecontrol.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -207,7 +207,7 @@ changecontrol.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // DELETE /:id — delete
-changecontrol.delete('/:id', requirePermission('canDelete'), async (c) => {
+changecontrol.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -224,7 +224,7 @@ changecontrol.delete('/:id', requirePermission('canDelete'), async (c) => {
 });
 
 // POST /:id/tasks — add implementation task
-changecontrol.post('/:id/tasks', requirePermission('canEdit'), async (c) => {
+changecontrol.post('/:id/tasks', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -253,7 +253,7 @@ changecontrol.post('/:id/tasks', requirePermission('canEdit'), async (c) => {
 });
 
 // PUT /:id/tasks/:taskId — update task
-changecontrol.put('/:id/tasks/:taskId', requirePermission('canEdit'), async (c) => {
+changecontrol.put('/:id/tasks/:taskId', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { taskId } = c.req.param();
@@ -286,7 +286,7 @@ changecontrol.put('/:id/tasks/:taskId', requirePermission('canEdit'), async (c) 
 });
 
 // PUT /:id/start-approval — create workflow execution for this change control
-changecontrol.put('/:id/start-approval', requirePermission('canEdit'), async (c) => {
+changecontrol.put('/:id/start-approval', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -340,7 +340,7 @@ changecontrol.put('/:id/start-approval', requirePermission('canEdit'), async (c)
 });
 
 // PUT /:id/verify-effectiveness — mark effectiveness verified
-changecontrol.put('/:id/verify-effectiveness', requirePermission('canEdit'), async (c) => {
+changecontrol.put('/:id/verify-effectiveness', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

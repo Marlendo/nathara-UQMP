@@ -2,7 +2,7 @@
  * Master Template Registry
  *
  * Central registry of all verticals, countries, and modules available
- * in QAtrial. This file is the single source of truth for what
+ * in Nathara UQMP. This file is the single source of truth for what
  * template combinations are supported.
  */
 
@@ -16,7 +16,7 @@ import type {
 // Vertical Definitions
 // ---------------------------------------------------------------------------
 
-/** All 10 industry verticals supported by QAtrial */
+/** All 10 industry verticals supported by Nathara UQMP */
 export const VERTICAL_DEFINITIONS: VerticalDefinition[] = [
   {
     id: 'pharma',

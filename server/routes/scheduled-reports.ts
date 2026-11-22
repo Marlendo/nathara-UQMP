@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 
 const scheduledReports = new Hono();
 
-scheduledReports.use('*', authMiddleware);
+scheduledReports.use('*', ssoAuthMiddleware);
 
 const VALID_REPORT_TYPES = [
   'validation_summary',
@@ -60,7 +60,7 @@ scheduledReports.get('/', async (c) => {
 });
 
 // Create scheduled report
-scheduledReports.post('/', requirePermission('canEdit'), async (c) => {
+scheduledReports.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     if (!user.orgId) {
@@ -98,7 +98,7 @@ scheduledReports.post('/', requirePermission('canEdit'), async (c) => {
 });
 
 // Update scheduled report
-scheduledReports.put('/:id', requirePermission('canEdit'), async (c) => {
+scheduledReports.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -130,7 +130,7 @@ scheduledReports.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Delete scheduled report
-scheduledReports.delete('/:id', requirePermission('canDelete'), async (c) => {
+scheduledReports.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -152,7 +152,7 @@ scheduledReports.delete('/:id', requirePermission('canDelete'), async (c) => {
 });
 
 // Run now — execute immediately and return report data
-scheduledReports.post('/:id/run-now', requirePermission('canEdit'), async (c) => {
+scheduledReports.post('/:id/run-now', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

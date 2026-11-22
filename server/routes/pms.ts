@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const pms = new Hono();
 
-pms.use('*', authMiddleware);
+pms.use('*', ssoAuthMiddleware);
 
 // List PMS entries
 pms.get('/:projectId/entries', async (c) => {
@@ -137,7 +137,7 @@ pms.get('/:projectId/psur-data', async (c) => {
 });
 
 // Create PMS entry
-pms.post('/:projectId/entries', requirePermission('canEdit'), async (c) => {
+pms.post('/:projectId/entries', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { projectId } = c.req.param();

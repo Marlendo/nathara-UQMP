@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "qatrial.fullname" . }}
+  name: {{ include "nathara-uqmp.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "qatrial.name" . }}
+    app.kubernetes.io/name: {{ include "nathara-uqmp.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ include "qatrial.name" . }}
+      app.kubernetes.io/name: {{ include "nathara-uqmp.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "qatrial.name" . }}
+        app.kubernetes.io/name: {{ include "nathara-uqmp.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       {{- with .Values.nodeSelector }}
@@ -42,18 +42,18 @@ spec:
               value: production
             - name: DATABASE_URL
               {{- if .Values.postgresql.enabled }}
-              value: "postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ include "qatrial.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}"
+              value: "postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ include "nathara-uqmp.fullname" . }}-postgresql:5432/{{ .Values.postgresql.auth.database }}"
               {{- else }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "qatrial.fullname" . }}-secret
+                  name: {{ include "nathara-uqmp.fullname" . }}-secret
                   key: DATABASE_URL
               {{- end }}
-            - name: JWT_SECRET
+            - name: UQMP_LINK_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "qatrial.fullname" . }}-secret
-                  key: JWT_SECRET
+                  name: {{ include "nathara-uqmp.fullname" . }}-secret
+                  key: UQMP_LINK_SECRET
             - name: AI_PROVIDER_TYPE
               value: {{ .Values.env.AI_PROVIDER_TYPE | quote }}
             - name: AI_PROVIDER_URL
@@ -61,13 +61,19 @@ spec:
             - name: AI_PROVIDER_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "qatrial.fullname" . }}-secret
+                  name: {{ include "nathara-uqmp.fullname" . }}-secret
                   key: AI_PROVIDER_KEY
                   optional: true
             - name: AI_PROVIDER_MODEL
               value: {{ .Values.env.AI_PROVIDER_MODEL | quote }}
-            - name: SSO_ENABLED
-              value: {{ .Values.env.SSO_ENABLED | quote }}
+            - name: SUPABASE_URL
+              value: {{ .Values.env.SUPABASE_URL | quote }}
+            - name: SSO_ISSUER_URL
+              value: {{ .Values.env.SSO_ISSUER_URL | quote }}
+            - name: SSO_JWKS_URL
+              value: {{ .Values.env.SSO_JWKS_URL | quote }}
+            - name: SSO_CALLBACK_URL
+              value: {{ .Values.env.SSO_CALLBACK_URL | quote }}
           livenessProbe:
             httpGet:
               path: /api/status
@@ -93,5 +99,5 @@ spec:
         {{- if .Values.persistence.uploads.enabled }}
         - name: uploads
           persistentVolumeClaim:
-            claimName: {{ include "qatrial.fullname" . }}-uploads
+            claimName: {{ include "nathara-uqmp.fullname" . }}-uploads
         {{- end }}

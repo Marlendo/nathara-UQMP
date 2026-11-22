@@ -4,7 +4,7 @@ import { X, Upload, Download, Trash2, Paperclip, FileText, AlertTriangle } from 
 import { useAppMode } from '../../hooks/useAppMode';
 import { useEvidenceStore, type EvidenceAttachment } from '../../store/useEvidenceStore';
 import { useAuthStore } from '../../store/useAuthStore';
-import { apiFetch, getApiBase } from '../../lib/apiClient';
+import { apiFetch, getApiBase, getStoredToken } from '../../lib/apiClient';
 
 interface Props {
   entityType: 'requirement' | 'test' | 'capa';
@@ -134,7 +134,7 @@ export function EvidencePanel({ entityType, entityId, projectId, open, onClose }
             formData.append('projectId', projectId);
             formData.append('description', description);
 
-            const token = localStorage.getItem('qatrial:token');
+            const token = getStoredToken();
             const response = await fetch(`${getApiBase()}/evidence/upload`, {
               method: 'POST',
               headers: {
@@ -175,7 +175,7 @@ export function EvidencePanel({ entityType, entityId, projectId, open, onClose }
       link.click();
       document.body.removeChild(link);
     } else if (isServerMode) {
-      const token = localStorage.getItem('qatrial:token');
+      const token = getStoredToken();
       const response = await fetch(`${getApiBase()}/evidence/${attachment.id}/download`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),

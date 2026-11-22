@@ -1,13 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, ShieldCheck, AlertTriangle, CheckCircle } from 'lucide-react';
-import { useAppMode } from '../../hooks/useAppMode';
 import { useAuditStore } from '../../store/useAuditStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useAuth } from '../../hooks/useAuth';
 import { apiFetch } from '../../lib/apiClient';
-import { roleHasPermission } from '../../lib/permissions';
+import { isAdminUQMP, roleHasPermission } from '../../lib/permissions';
 import type { ElectronicSignature, SignatureMeaning } from '../../types';
+
+// SSO-UQMP migrasi (K17/R1): password DIHAPUS. Step-up = sesi SSO segar
+// (≤5 menit, ditegakkan server POST /signatures, method 'sso-reauth').
 
 interface Props {
   open: boolean;
@@ -31,22 +33,24 @@ export function EnhancedSignatureModal({
   onClose,
 }: Props) {
   const { t } = useTranslation();
-  const { mode } = useAppMode();
-  const isServerMode = mode === 'server';
+  // SSO-UQMP: selalu server-mode (standalone dimatikan, K26).
+  const isServerMode = true;
 
   const auditLog = useAuditStore((s) => s.log);
   const currentUser = useAuthStore((s) => s.currentUser);
-  const verifyForSignature = useAuthStore((s) => s.verifyForSignature);
-  const isSignatureValid = useAuthStore((s) => s.isSignatureValid);
   const { user: authUser } = useAuth();
+  const ssoProfile = currentUser ?? (authUser ? {
+    role: authUser.role,
+    scope: authUser.scope,
+  } : null);
+  const isAdmin = isAdminUQMP(ssoProfile);
   const currentRole = currentUser?.role || authUser?.role || null;
-  const canApprove = roleHasPermission(currentRole, 'canApprove');
-  const canSign = roleHasPermission(currentRole, 'canSign');
+  const canApprove = isAdmin && roleHasPermission(currentRole, 'canApprove');
+  const canSign = isAdmin && roleHasPermission(currentRole, 'canSign');
 
   const [meaning, setMeaning] = useState<SignatureMeaning>(initialMeaning || 'approved');
   const [reason, setReason] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ reason?: string; password?: string; auth?: string }>({});
+  const [errors, setErrors] = useState<{ reason?: string; auth?: string }>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState<{ signatureId: string; timestamp: string } | null>(null);
 
@@ -78,16 +82,14 @@ export function EnhancedSignatureModal({
   if (!open) return null;
 
   const validate = (): boolean => {
-    const newErrors: { reason?: string; password?: string; auth?: string } = {};
+    const newErrors: { reason?: string; auth?: string } = {};
     if (!reason.trim()) {
       newErrors.reason = t('common.required');
     }
     if (!allowedMeanings.includes(meaning)) {
       newErrors.auth = 'You do not have permission to apply this signature meaning.';
     }
-    if ((isServerMode || !isSignatureValid()) && !password.trim()) {
-      newErrors.password = t('common.required');
-    }
+    // Tanpa password: step-up SSO ditegakkan server (sesi segar ≤5 menit).
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -99,37 +101,14 @@ export function EnhancedSignatureModal({
     setLoading(true);
     setErrors({});
 
-    // Verify password
-    if (!isSignatureValid()) {
-      if (isServerMode) {
-        try {
-          await apiFetch('/auth/verify-password', {
-            method: 'POST',
-            body: JSON.stringify({ password }),
-          });
-        } catch {
-          setErrors({ auth: t('signature.authFailed') });
-          setLoading(false);
-          return;
-        }
-      } else if (currentUser) {
-        const verified = verifyForSignature(password);
-        if (!verified) {
-          setErrors({ auth: t('signature.authFailed') });
-          setLoading(false);
-          return;
-        }
-      }
-    }
-
     const timestamp = new Date().toISOString();
     const signature: ElectronicSignature = {
       signerId: currentUser?.id || authUser?.id || 'anonymous',
       signerName: currentUser?.displayName || authUser?.name || 'Anonymous User',
-      signerRole: currentUser?.title || currentUser?.role || authUser?.role || 'User',
+      signerRole: currentUser?.role || authUser?.role || 'User',
       timestamp,
       meaning,
-      method: isServerMode ? 'server-verified' : currentUser ? 'password-verified' : 'password-unverified',
+      method: 'sso-reauth',
     };
 
     let signatureId = `sig-${Date.now()}`;
@@ -155,7 +134,6 @@ export function EnhancedSignatureModal({
             entityId,
             meaning,
             reason,
-            password,
           }),
         });
         signatureId = result.signature.id;
@@ -191,7 +169,6 @@ export function EnhancedSignatureModal({
   const handleClose = () => {
     setMeaning(initialMeaning || 'approved');
     setReason('');
-    setPassword('');
     setErrors({});
     setSuccess(null);
     setLoading(false);
@@ -307,24 +284,12 @@ export function EnhancedSignatureModal({
                 {errors.reason && <p className="text-xs text-danger mt-0.5">{errors.reason}</p>}
               </div>
 
-              {/* Password */}
-              <div>
-                <label className="block text-sm font-medium text-text-primary mb-1">
-                  {t('signature.password')} <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }));
-                  }}
-                  placeholder={t('signature.authenticate')}
-                  className={`w-full px-3 py-2 bg-input-bg border rounded-lg text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent transition-colors ${
-                    errors.password ? 'border-danger' : 'border-input-border'
-                  }`}
-                />
-                {errors.password && <p className="text-xs text-danger mt-0.5">{errors.password}</p>}
+              {/* Step-up SSO (pengganti password): sesi SSO harus segar ≤5 menit */}
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-accent-subtle border border-accent/20">
+                <ShieldCheck className="w-4 h-4 text-accent shrink-0" />
+                <p className="text-xs text-text-secondary">
+                  Verifikasi step-up SSO: sesi SSO harus segar (≤5 menit). Bila kedaluwarsa, masuk ulang SSO.
+                </p>
               </div>
 
               {/* Auth error */}

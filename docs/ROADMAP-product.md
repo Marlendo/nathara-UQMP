@@ -1,8 +1,8 @@
-# QAtrial — Concrete 3-Phase Roadmap: Converge -> Audit-Ready -> Expand
+# Nathara UQMP — Concrete 3-Phase Roadmap: Converge -> Audit-Ready -> Expand
 
 ## Executive Summary
 
-QAtrial already has broad product surface area: a strong React frontend, many domain modules, templates, AI prompt flows, and a Hono/Prisma backend foundation. The main delivery risk is no longer "missing ideas". It is platform convergence.
+Nathara UQMP already has broad product surface area: a strong React frontend, many domain modules, templates, AI prompt flows, and a Hono/Prisma backend foundation. The main delivery risk is no longer "missing ideas". It is platform convergence.
 
 Today the codebase still operates as two partially overlapping systems:
 
@@ -46,7 +46,7 @@ These are the issues Phase 1 must explicitly address:
 
 ## Current Execution Position
 
-Based on the implemented work in [IMPLEMENTATION-STATUS.md](/Users/thorstenmeyer/Dev/QAtrial/docs/IMPLEMENTATION-STATUS.md), the roadmap should now be read from the current codebase position, not from zero.
+Based on the implemented work in [IMPLEMENTATION-STATUS.md](/Users/thorstenmeyer/Dev/Nathara UQMP/docs/IMPLEMENTATION-STATUS.md), the roadmap should now be read from the current codebase position, not from zero.
 
 - **Phase 1** is substantially complete.
   Core contract convergence, server-backed project/requirements/tests flows, backend typecheck, app bootstrap, team/workspace parity, and the main schema/route repairs are already in place.
@@ -200,7 +200,7 @@ The remaining plan assumes **2-week sprints**. The goal is to turn the unfinishe
 - ship a coherent medical-device starter pack and demo/pilot flow
 
 **Exit criteria**
-- QAtrial has a credible first commercial wedge for medical-device teams
+- Nathara UQMP has a credible first commercial wedge for medical-device teams
 - QMSR reporting is tied to real evidence and workflow state
 - the starter pack creates a usable medical-device project path
 
@@ -326,7 +326,7 @@ The remaining plan assumes **2-week sprints**. The goal is to turn the unfinishe
 
 ## Phase 1 — Platform Convergence (Weeks 0-8)
 
-**Goal**: make QAtrial operate as one coherent product rather than a client-first app with a partial server overlay.
+**Goal**: make Nathara UQMP operate as one coherent product rather than a client-first app with a partial server overlay.
 
 ### Epic 1 — Core Contract Convergence
 **Order:** 1  
@@ -417,7 +417,7 @@ The remaining plan assumes **2-week sprints**. The goal is to turn the unfinishe
 
 ## Phase 2 — Audit-Ready Product Core (Weeks 8-18)
 
-**Goal**: turn QAtrial from a converged platform into a dependable, audit-facing product for real teams.
+**Goal**: turn Nathara UQMP from a converged platform into a dependable, audit-facing product for real teams.
 
 ### Epic 6 — Approval Workflows and Electronic Signatures
 **Order:** 6  
@@ -491,7 +491,7 @@ The remaining plan assumes **2-week sprints**. The goal is to turn the unfinishe
 
 ### Phase 2 Exit Criteria
 
-- QAtrial can support a single-site team using the product end-to-end.
+- Nathara UQMP can support a single-site team using the product end-to-end.
 - Approval, signature, evidence, traceability, audit export, and audit-mode flows are trustworthy.
 - Dashboard metrics are sourced from stable backend relations.
 - Cloud/self-host setup is documented well enough for customer pilots.
@@ -674,6 +674,6 @@ These are not rejected. They are intentionally sequenced behind the platform and
 
 ## Recommended Commercial Positioning During Delivery
 
-- **Phase 1 message**: "QAtrial is becoming the server-backed quality workspace, not just a local demo."
-- **Phase 2 message**: "QAtrial helps teams pass audits without spreadsheet sprawl."
-- **Phase 3 message**: "QAtrial adds deep regulated workflows starting with medical device, then enterprise operations, then broader vertical expansion."
+- **Phase 1 message**: "Nathara UQMP is becoming the server-backed quality workspace, not just a local demo."
+- **Phase 2 message**: "Nathara UQMP helps teams pass audits without spreadsheet sprawl."
+- **Phase 3 message**: "Nathara UQMP adds deep regulated workflows starting with medical device, then enterprise operations, then broader vertical expansion."

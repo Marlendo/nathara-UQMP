@@ -138,7 +138,7 @@ export const useEvidenceStore = create<EvidenceState>()(
       },
     }),
     {
-      name: 'qatrial:evidence',
+      name: 'nathara-uqmp:evidence',
       // Don't persist dataUrl to avoid localStorage bloat — in production, use server storage
       partialize: (state) => ({
         attachments: state.attachments.map((a) => ({

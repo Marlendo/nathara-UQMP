@@ -182,10 +182,10 @@ When a preset is selected, the Model field becomes a dropdown with all available
 ## New Stores Added (4)
 | Store | Persistence Key | Purpose |
 |-------|----------------|---------|
-| `useDesignControlStore` | `qatrial:design-control` | Design items + document records |
-| `useCustomFieldsStore` | `qatrial:custom-fields` | Field definitions + values |
-| `useWorkflowStore` | `qatrial:workflow` | Workflow definitions + instances |
-| `useNotificationStore` | `qatrial:notifications` | Notification management |
+| `useDesignControlStore` | `nathara-uqmp:design-control` | Design items + document records |
+| `useCustomFieldsStore` | `nathara-uqmp:custom-fields` | Field definitions + values |
+| `useWorkflowStore` | `nathara-uqmp:workflow` | Workflow definitions + instances |
+| `useNotificationStore` | `nathara-uqmp:notifications` | Notification management |
 
 ## New Components (3)
 - `src/components/design/DesignControlView.tsx` — Kanban board

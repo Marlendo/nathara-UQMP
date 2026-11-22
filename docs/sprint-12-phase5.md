@@ -14,7 +14,7 @@ Phase 5 adds everything needed for enterprise deployment: Docker packaging, SSO,
 - Server updated to serve `dist/` as static files when `NODE_ENV=production`
 
 ```bash
-docker-compose up    # starts QAtrial + PostgreSQL, accessible at http://localhost:3001
+docker-compose up    # starts Nathara UQMP + PostgreSQL, accessible at http://localhost:3001
 ```
 
 ### SSO (OIDC)
@@ -32,7 +32,7 @@ docker-compose up    # starts QAtrial + PostgreSQL, accessible at http://localho
 | **OQ** (Operational Qualification) | Verify correct operation | 18 test steps: wizard, CRUD, traceability, AI, approvals, evidence, export, import, design control, ISO 13485, CAPA, audit mode, RBAC |
 | **PQ** (Performance Qualification) | Customer-specific validation | Template with blanks: environment, customer tests, performance criteria |
 | **Compliance Statement** | Regulatory alignment | 21 CFR Part 11 (15 sections), EU Annex 11 (17 sections), GAMP 5 Cat 4 |
-| **Traceability Matrix** | Feature → regulation mapping | 75 requirements across 6 standards mapped to QAtrial features + IQ/OQ/PQ test IDs |
+| **Traceability Matrix** | Feature → regulation mapping | 75 requirements across 6 standards mapped to Nathara UQMP features + IQ/OQ/PQ test IDs |
 
 ### Webhooks
 - **Backend** (`server/routes/webhooks.ts`): CRUD for webhook configuration + test endpoint

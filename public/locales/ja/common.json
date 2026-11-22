@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "QAtrial",
+    "name": "Nathara UQMP",
     "newProject": "新規プロジェクト"
   },
   "nav": {
@@ -202,8 +202,8 @@
     "portfolioHealth_on_track": "順調",
     "portfolioHealth_at_risk": "リスクあり",
     "portfolioHealth_blocked": "ブロック中",
-    "portfolioEnterpriseTitle": "QAtrial Enterprise",
-    "portfolioEnterpriseDesc": "この機能にはQAtrial Enterpriseのマルチプロジェクト管理が必要です。複数プロジェクトの管理、サイト間の準備状況比較、統合コンプライアンスレポートの生成についてはアカウントマネージャーにお問い合わせください。"
+    "portfolioEnterpriseTitle": "Nathara UQMP Enterprise",
+    "portfolioEnterpriseDesc": "この機能にはNathara UQMP Enterpriseのマルチプロジェクト管理が必要です。複数プロジェクトの管理、サイト間の準備状況比較、統合コンプライアンスレポートの生成についてはアカウントマネージャーにお問い合わせください。"
   },
   "statuses": {
     "Draft": "ドラフト",

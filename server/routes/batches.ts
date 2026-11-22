@@ -1,14 +1,13 @@
 import { Hono } from 'hono';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP, isSsoFreshForEsign } from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
-import * as bcrypt from 'bcryptjs';
 
 const batches = new Hono();
 
-batches.use('*', authMiddleware);
+batches.use('*', ssoAuthMiddleware);
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   draft: ['in_progress'],
@@ -98,7 +97,7 @@ batches.get('/:id', async (c) => {
 });
 
 // Create batch record
-batches.post('/', requirePermission('canEdit'), async (c) => {
+batches.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -145,7 +144,7 @@ batches.post('/', requirePermission('canEdit'), async (c) => {
 });
 
 // Update batch record
-batches.put('/:id', requirePermission('canEdit'), async (c) => {
+batches.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -196,7 +195,7 @@ batches.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Delete batch record
-batches.delete('/:id', requirePermission('canDelete'), async (c) => {
+batches.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -225,7 +224,7 @@ batches.delete('/:id', requirePermission('canDelete'), async (c) => {
 });
 
 // Add step to batch
-batches.post('/:id/steps', requirePermission('canEdit'), async (c) => {
+batches.post('/:id/steps', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -273,7 +272,7 @@ batches.post('/:id/steps', requirePermission('canEdit'), async (c) => {
 });
 
 // Update batch step (record actual value, deviation)
-batches.put('/:id/steps/:stepId', requirePermission('canEdit'), async (c) => {
+batches.put('/:id/steps/:stepId', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id, stepId } = c.req.param();
@@ -324,7 +323,7 @@ batches.put('/:id/steps/:stepId', requirePermission('canEdit'), async (c) => {
 });
 
 // Release batch (requires e-signature: check user password)
-batches.put('/:id/release', requirePermission('canApprove'), async (c) => {
+batches.put('/:id/release', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -339,19 +338,15 @@ batches.put('/:id/release', requirePermission('canApprove'), async (c) => {
       return c.json({ message: 'Batch must be in review status to release' }, 400);
     }
 
-    // E-signature verification: check password
-    if (!body.password) {
-      return c.json({ message: 'Password required for e-signature release' }, 400);
+    // E-signature verification: step-up SSO (R1) — JWT prod harus segar
+    // (iat ≤ 300 dtk). Password-path DIMATIKAN (SSO-UQMP migrasi).
+    if (!isSsoFreshForEsign(user)) {
+      return c.json({ message: 'Sesi SSO kedaluwarsa untuk rilis batch. Silakan login ulang SSO (≤5 menit).' }, 403);
     }
 
     const dbUser = await prisma.user.findUnique({ where: { id: user.userId } });
     if (!dbUser) {
       return c.json({ message: 'User not found' }, 404);
-    }
-
-    const passwordValid = await bcrypt.compare(body.password, dbUser.passwordHash);
-    if (!passwordValid) {
-      return c.json({ message: 'Invalid password. E-signature verification failed.' }, 401);
     }
 
     const item = await prisma.batchRecord.update({

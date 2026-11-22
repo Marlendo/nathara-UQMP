@@ -1,11 +1,19 @@
 import { Hono } from 'hono';
-import * as bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, requireRole, requirePermission, getUser, VALID_ROLES } from '../middleware/auth.js';
+import {
+  ssoAuthMiddleware,
+  requireAdminUQMP,
+  getUser,
+  auditSso,
+} from '../middleware/ssoAuth.js';
+
+// SSO-UQMP migrasi (K15–K16): password-invite + role bebas DIMATIKAN.
+// Invite = pemetaan admin/UQMP oleh admin (tanpa password, tanpa
+// temporaryPassword). Satu-satunya role valid = admin (+scope UQMP).
 
 const users = new Hono();
 
-users.use('*', authMiddleware);
+users.use('*', ssoAuthMiddleware);
 
 function deriveDisplayName(email: string): string {
   const localPart = email.split('@')[0] || 'User';
@@ -40,7 +48,7 @@ users.get('/team', async (c) => {
       orgName: org?.name ?? 'Organization',
       members,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Load team error:', error);
     return c.json({ message: 'Failed to load team' }, 500);
   }
@@ -61,16 +69,16 @@ users.get('/', async (c) => {
     });
 
     return c.json({ users: items });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('List users error:', error);
     return c.json({ message: 'Failed to list users' }, 500);
   }
 });
 
-// All valid roles including legacy for backward compat
-const ALL_VALID_ROLES = [...VALID_ROLES, 'editor', 'viewer'];
-
-users.post('/invite', requirePermission('canAdmin'), async (c) => {
+// POST /invite — admin memetakan email menjadi admin/UQMP.
+// Baris dibuat tanpa supabaseSub; sub diikat saat login SSO pertama
+// (satu-kali, hanya bila email cocok persis dan sub belum terikat).
+users.post('/invite', requireAdminUQMP(), async (c) => {
   try {
     const currentUser = getUser(c);
     const body = await c.req.json();
@@ -79,11 +87,11 @@ users.post('/invite', requirePermission('canAdmin'), async (c) => {
       return c.json({ message: 'Email is required' }, 400);
     }
 
-    const requestedRole = body.role ?? 'qa_engineer';
-    if (!ALL_VALID_ROLES.includes(requestedRole)) {
-      return c.json({
-        message: `Invalid role. Valid roles: ${VALID_ROLES.join(', ')}`,
-      }, 400);
+    if (body.role && body.role !== 'admin') {
+      return c.json(
+        { message: 'Satu-satunya peran valid: admin (scope UQMP).' },
+        400,
+      );
     }
 
     const existing = await prisma.user.findUnique({ where: { email: body.email } });
@@ -91,44 +99,49 @@ users.post('/invite', requirePermission('canAdmin'), async (c) => {
       return c.json({ message: 'User with this email already exists' }, 409);
     }
 
-    // Generate a temporary password; in production, send an email invite instead
-    const tempPassword = crypto.randomUUID().slice(0, 12);
-    const passwordHash = await bcrypt.hash(tempPassword, 12);
-
-    const inviteeName = typeof body.name === 'string' && body.name.trim().length > 0
-      ? body.name.trim()
-      : deriveDisplayName(body.email);
+    const inviteeName =
+      typeof body.name === 'string' && body.name.trim().length > 0
+        ? body.name.trim()
+        : deriveDisplayName(body.email);
 
     const newUser = await prisma.user.create({
       data: {
         email: body.email,
-        passwordHash,
         name: inviteeName,
-        role: requestedRole,
+        role: 'admin',
+        scope: 'UQMP',
         orgId: currentUser.orgId,
       },
     });
 
+    await auditSso(c, 'user.role_mapped', {
+      supabaseSub: newUser.supabaseSub ?? 'pending-link',
+      email: newUser.email,
+      reason: 'invite admin/UQMP — sub diikat saat login SSO pertama',
+    });
+
     return c.json({
       user: { id: newUser.id, email: newUser.email, name: newUser.name, role: newUser.role },
-      temporaryPassword: tempPassword,
     }, 201);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Invite user error:', error);
     return c.json({ message: 'Failed to invite user' }, 500);
   }
 });
 
-users.put('/:id/role', requirePermission('canAdmin'), async (c) => {
+// PUT /:id/role —terkunci: hanya admin yang boleh dipertahankan.
+// Peran qa_* MATI untuk akses (default deny).
+users.put('/:id/role', requireAdminUQMP(), async (c) => {
   try {
     const currentUser = getUser(c);
     const { id } = c.req.param();
     const body = await c.req.json();
 
-    if (!body.role || !ALL_VALID_ROLES.includes(body.role)) {
-      return c.json({
-        message: `Valid role is required. Options: ${VALID_ROLES.join(', ')}`,
-      }, 400);
+    if (body.role !== 'admin') {
+      return c.json(
+        { message: 'Satu-satunya peran valid: admin (scope UQMP).' },
+        400,
+      );
     }
 
     const targetUser = await prisma.user.findUnique({ where: { id } });
@@ -140,18 +153,20 @@ users.put('/:id/role', requirePermission('canAdmin'), async (c) => {
       return c.json({ message: 'Cannot modify users outside your organization' }, 403);
     }
 
-    if (targetUser.id === currentUser.userId && body.role !== 'admin') {
-      return c.json({ message: 'Cannot demote yourself' }, 400);
-    }
-
     const updated = await prisma.user.update({
       where: { id },
-      data: { role: body.role },
+      data: { role: 'admin', scope: 'UQMP' },
       select: { id: true, email: true, name: true, role: true },
     });
 
+    await auditSso(c, 'user.role_mapped', {
+      supabaseSub: targetUser.supabaseSub ?? updated.id,
+      email: updated.email,
+      reason: 'role ditegaskan admin/UQMP',
+    });
+
     return c.json({ user: updated });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Update user role error:', error);
     return c.json({ message: 'Failed to update user role' }, 500);
   }

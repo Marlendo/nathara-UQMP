@@ -1,14 +1,14 @@
 import { Hono } from 'hono';
 import { prisma } from '../../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../../middleware/ssoAuth.js';
 import { logAudit } from '../../services/audit.service.js';
 
 const lims = new Hono();
 
-lims.use('*', authMiddleware);
+lims.use('*', ssoAuthMiddleware);
 
 // Connect to LabWare LIMS
-lims.post('/connect', requirePermission('canEdit'), async (c) => {
+lims.post('/connect', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -92,7 +92,7 @@ lims.get('/status', async (c) => {
 });
 
 // Sync stability test results from LIMS
-lims.post('/sync-stability', requirePermission('canEdit'), async (c) => {
+lims.post('/sync-stability', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const orgId = user.orgId;
@@ -142,7 +142,7 @@ lims.post('/sync-stability', requirePermission('canEdit'), async (c) => {
 });
 
 // Sync environmental monitoring data from LIMS
-lims.post('/sync-envmon', requirePermission('canEdit'), async (c) => {
+lims.post('/sync-envmon', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const orgId = user.orgId;
@@ -191,7 +191,7 @@ lims.post('/sync-envmon', requirePermission('canEdit'), async (c) => {
 });
 
 // Sync batch QC results from LIMS
-lims.post('/sync-batch-results', requirePermission('canEdit'), async (c) => {
+lims.post('/sync-batch-results', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const orgId = user.orgId;

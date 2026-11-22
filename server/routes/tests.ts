@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const tests = new Hono();
 
-tests.use('*', authMiddleware);
+tests.use('*', ssoAuthMiddleware);
 
 async function nextSeqId(projectId: string): Promise<string> {
   const count = await prisma.test.count({ where: { projectId } });
@@ -32,7 +32,7 @@ tests.get('/', async (c) => {
   }
 });
 
-tests.post('/', requirePermission('canEdit'), async (c) => {
+tests.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -91,7 +91,7 @@ tests.get('/:id', async (c) => {
   }
 });
 
-tests.put('/:id', requirePermission('canEdit'), async (c) => {
+tests.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -134,7 +134,7 @@ tests.put('/:id', requirePermission('canEdit'), async (c) => {
   }
 });
 
-tests.delete('/:id', requirePermission('canDelete'), async (c) => {
+tests.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

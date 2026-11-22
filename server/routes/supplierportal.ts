@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { createNotification } from './notifications.js';
 
 const supplierPortal = new Hono();
@@ -27,7 +27,7 @@ async function resolveToken(token: string) {
 // ── Admin endpoints (auth required) ─────────────────────────────────────────
 
 // POST /create — generate a portal link
-supplierPortal.post('/create', authMiddleware, requirePermission('canEdit'), async (c) => {
+supplierPortal.post('/create', ssoAuthMiddleware, requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { supplierId, expiresInDays } = await c.req.json();
@@ -72,7 +72,7 @@ supplierPortal.post('/create', authMiddleware, requirePermission('canEdit'), asy
 });
 
 // GET /links — list active portal links
-supplierPortal.get('/links', authMiddleware, requirePermission('canEdit'), async (c) => {
+supplierPortal.get('/links', ssoAuthMiddleware, requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     if (!user.orgId) {
@@ -96,7 +96,7 @@ supplierPortal.get('/links', authMiddleware, requirePermission('canEdit'), async
 });
 
 // DELETE /links/:id — revoke a portal link
-supplierPortal.delete('/links/:id', authMiddleware, requirePermission('canDelete'), async (c) => {
+supplierPortal.delete('/links/:id', ssoAuthMiddleware, requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

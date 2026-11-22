@@ -1,6 +1,6 @@
-# QAtrial Architecture Documentation
+# Nathara UQMP Architecture Documentation
 
-Technical architecture documentation for QAtrial, the regulated quality workspace.
+Technical architecture documentation for Nathara UQMP, the regulated quality workspace.
 
 ---
 
@@ -110,7 +110,7 @@ Technical architecture documentation for QAtrial, the regulated quality workspac
 
 ### Design Principles
 
-1. **Dual-Mode Architecture:** QAtrial operates in two modes: (a) client-only with localStorage for demos and standalone use, and (b) full-stack with a Hono backend server and PostgreSQL for team/production use. The `apiClient.ts` fetch wrapper connects the frontend to the backend via Bearer token authentication.
+1. **Dual-Mode Architecture:** Nathara UQMP operates in two modes: (a) client-only with localStorage for demos and standalone use, and (b) full-stack with a Hono backend server and PostgreSQL for team/production use. The `apiClient.ts` fetch wrapper connects the frontend to the backend via Bearer token authentication.
 2. **Composition Over Inheritance:** Templates are composed from independent dimensions (country, vertical, project type, modules) rather than inherited from base classes.
 3. **Deduplication by Template ID:** When templates overlap, deduplication uses `templateId` (falls back to title for backward compatibility). Later sources override earlier ones.
 4. **Lazy Loading and Code Splitting:** Template files, translation files, and tab components are loaded via dynamic imports (`React.lazy` + `Suspense`). Vite manual chunks split vendor code into `vendor-react`, `vendor-charts`, `vendor-table`, `vendor-i18n`, `vendor-state`, `templates`, and `ai` bundles.
@@ -454,7 +454,7 @@ The legacy `requireRole()` middleware remains for backward compatibility.
 
 ```typescript
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = localStorage.getItem('qatrial:token');
+  const token = localStorage.getItem('nathara-uqmp:token');
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers: {
@@ -631,10 +631,10 @@ When `NODE_ENV=production`, the Hono server serves the built frontend from `dist
 6. IdP redirects back to: GET /api/auth/sso/callback?code=...
 7. Server exchanges code for tokens at the IdP token endpoint
 8. Server fetches user info from the IdP userinfo endpoint
-9. Server looks up or auto-provisions the QAtrial user:
+9. Server looks up or auto-provisions the Nathara UQMP user:
    - If user exists (by email): update name if needed
    - If user does not exist and SSO_AUTO_PROVISION=true: create user with SSO_DEFAULT_ROLE
-10. Server signs QAtrial JWT tokens (access + refresh)
+10. Server signs Nathara UQMP JWT tokens (access + refresh)
 11. Server redirects to frontend with tokens
 12. Frontend stores tokens and completes login
 ```
@@ -707,10 +707,10 @@ Mutation Endpoint (e.g., requirement.create)
 
 ### HMAC Signing
 
-Each webhook delivery includes an `X-QAtrial-Signature` header:
+Each webhook delivery includes an `X-Nathara UQMP-Signature` header:
 
 ```
-X-QAtrial-Signature: sha256=<hex-encoded HMAC-SHA256 of payload body>
+X-Nathara UQMP-Signature: sha256=<hex-encoded HMAC-SHA256 of payload body>
 ```
 
 The HMAC is computed using the webhook's configured secret. Consumers verify the signature to ensure the payload is authentic and has not been tampered with.
@@ -726,7 +726,7 @@ Webhook dispatch is fire-and-forget. The `lastStatus` field on the webhook recor
 ### Jira Integration
 
 ```
-QAtrial <-------> Jira Cloud REST API v3
+Nathara UQMP <-------> Jira Cloud REST API v3
                   (Basic auth: email:apiToken)
 
 Endpoints:
@@ -738,15 +738,15 @@ Endpoints:
 ```
 
 **Data flow (sync):**
-- QAtrial requirement -> Jira issue (creates or updates)
-- Jira issue -> QAtrial requirement (imports or updates)
+- Nathara UQMP requirement -> Jira issue (creates or updates)
+- Jira issue -> Nathara UQMP requirement (imports or updates)
 
 **Configuration stored in:** `Integration` model with `type: 'jira'`, `config: { baseUrl, email, apiToken, projectKey }`
 
 ### GitHub Integration
 
 ```
-QAtrial <-------> GitHub REST API v3
+Nathara UQMP <-------> GitHub REST API v3
                   (Personal Access Token)
 
 Endpoints:
@@ -757,7 +757,7 @@ Endpoints:
 ```
 
 **Data flow:**
-- GitHub PR -> linked to QAtrial requirement (traceability)
+- GitHub PR -> linked to Nathara UQMP requirement (traceability)
 - GitHub Actions workflow run -> imported as test results
 
 **Configuration stored in:** `Integration` model with `type: 'github'`, `config: { owner, repo, token }`
@@ -880,7 +880,7 @@ Risk level is computed from severity and likelihood:
 
 ## 11. State Management
 
-QAtrial uses 20 Zustand stores (plus hooks) with localStorage persistence on the client. When the backend is available, the `apiClient.ts` fetch wrapper connects to the REST API for persistent server-backed storage.
+Nathara UQMP uses 20 Zustand stores (plus hooks) with localStorage persistence on the client. When the backend is available, the `apiClient.ts` fetch wrapper connects to the REST API for persistent server-backed storage.
 
 ### Dual-Mode Operation
 
@@ -895,21 +895,21 @@ In server-backed mode, the Zustand stores can still be used for client-side cach
 
 | Store | File | Persistence Key | Responsibility |
 |-------|------|----------------|----------------|
-| `useProjectStore` | `useProjectStore.ts` | `qatrial:project` | Project metadata (name, owner, country, vertical, modules) |
-| `useRequirementsStore` | `useRequirementsStore.ts` | `qatrial:requirements` | Requirements CRUD, counter for ID generation |
-| `useTestsStore` | `useTestsStore.ts` | `qatrial:tests` | Tests CRUD, requirement link management, counter |
-| `useAuditStore` | `useAuditStore.ts` | `qatrial:audit` | Audit trail entries, logging, filtering by entity/date |
-| `useLLMStore` | `useLLMStore.ts` | `qatrial:llm` | LLM provider configs, token usage tracking, connection testing |
-| `useThemeStore` | `useThemeStore.ts` | `qatrial:theme` | Light/dark theme preference with DOM class management |
-| `useLocaleStore` | `useLocaleStore.ts` | `qatrial:locale` | Language preference and country setting |
-| `useChangeControlStore` | `useChangeControlStore.ts` | `qatrial:change-control` | Change control configuration per vertical |
-| `useAuthStore` | `useAuthStore.ts` | `qatrial:auth` | User authentication, RBAC, session management, signature verification |
-| `useRiskStore` | `useRiskStore.ts` | `qatrial:risks` | Persisted risk assessments with CRUD and per-requirement queries |
-| `useCAPAStore` | `useCAPAStore.ts` | `qatrial:capa` | CAPA records with full lifecycle (open through closed) |
-| `useGapStore` | `useGapStore.ts` | `qatrial:gaps` | Gap analysis runs with readiness scores and review status |
-| `useEvidenceStore` | `useEvidenceStore.ts` | `qatrial:evidence` | Evidence attachments with completeness tracking |
-| `useAIHistoryStore` | `useAIHistoryStore.ts` | `qatrial:ai-history` | AI artifact provenance, re-run history, usage statistics |
-| `useConnectorStore` | `useConnectorStore.ts` | `qatrial:connectors` | External connector configurations and sync records |
+| `useProjectStore` | `useProjectStore.ts` | `nathara-uqmp:project` | Project metadata (name, owner, country, vertical, modules) |
+| `useRequirementsStore` | `useRequirementsStore.ts` | `nathara-uqmp:requirements` | Requirements CRUD, counter for ID generation |
+| `useTestsStore` | `useTestsStore.ts` | `nathara-uqmp:tests` | Tests CRUD, requirement link management, counter |
+| `useAuditStore` | `useAuditStore.ts` | `nathara-uqmp:audit` | Audit trail entries, logging, filtering by entity/date |
+| `useLLMStore` | `useLLMStore.ts` | `nathara-uqmp:llm` | LLM provider configs, token usage tracking, connection testing |
+| `useThemeStore` | `useThemeStore.ts` | `nathara-uqmp:theme` | Light/dark theme preference with DOM class management |
+| `useLocaleStore` | `useLocaleStore.ts` | `nathara-uqmp:locale` | Language preference and country setting |
+| `useChangeControlStore` | `useChangeControlStore.ts` | `nathara-uqmp:change-control` | Change control configuration per vertical |
+| `useAuthStore` | `useAuthStore.ts` | `nathara-uqmp:auth` | User authentication, RBAC, session management, signature verification |
+| `useRiskStore` | `useRiskStore.ts` | `nathara-uqmp:risks` | Persisted risk assessments with CRUD and per-requirement queries |
+| `useCAPAStore` | `useCAPAStore.ts` | `nathara-uqmp:capa` | CAPA records with full lifecycle (open through closed) |
+| `useGapStore` | `useGapStore.ts` | `nathara-uqmp:gaps` | Gap analysis runs with readiness scores and review status |
+| `useEvidenceStore` | `useEvidenceStore.ts` | `nathara-uqmp:evidence` | Evidence attachments with completeness tracking |
+| `useAIHistoryStore` | `useAIHistoryStore.ts` | `nathara-uqmp:ai-history` | AI artifact provenance, re-run history, usage statistics |
+| `useConnectorStore` | `useConnectorStore.ts` | `nathara-uqmp:connectors` | External connector configurations and sync records |
 | `useImportExport` | `useImportExport.ts` | N/A (hook, not persisted) | JSON export/import with referential integrity validation |
 
 ### Persistence Strategy
@@ -920,7 +920,7 @@ All stores (except `useImportExport`) use Zustand's `persist` middleware with `l
 export const useExampleStore = create<ExampleState>()(
   persist(
     (set, get) => ({ /* state and actions */ }),
-    { name: 'qatrial:example' }
+    { name: 'nathara-uqmp:example' }
   )
 );
 ```
@@ -951,7 +951,7 @@ The `importData` function strips dangling requirement links from tests before lo
 
 ### Dual Implementation
 
-QAtrial maintains audit trails in two ways:
+Nathara UQMP maintains audit trails in two ways:
 
 | Location | Storage | Characteristics |
 |----------|---------|----------------|
@@ -1181,7 +1181,7 @@ AI responses are validated through a structured validation layer:
 
 ### AI Proxy Mode
 
-For deployments where browser-to-LLM direct calls are not desired, QAtrial supports two proxy approaches:
+For deployments where browser-to-LLM direct calls are not desired, Nathara UQMP supports two proxy approaches:
 
 1. **Client-side proxy setting:** Set the `VITE_AI_PROXY_URL` environment variable. The `complete()` function routes through this URL.
 2. **Server-side proxy (recommended):** The `POST /api/ai/complete` endpoint proxies LLM calls with server-side API keys configured via environment variables.
@@ -1194,7 +1194,7 @@ For deployments where browser-to-LLM direct calls are not desired, QAtrial suppo
 
 **File:** `src/connectors/types.ts`
 
-The connector framework provides a pluggable architecture for integrating QAtrial with external systems (e.g., Jira, Azure DevOps, ALM tools).
+The connector framework provides a pluggable architecture for integrating Nathara UQMP with external systems (e.g., Jira, Azure DevOps, ALM tools).
 
 ### Core Types
 
@@ -1268,7 +1268,7 @@ const SettingsPage = React.lazy(() => import('./settings/SettingsPage'));
 
 ### react-i18next Configuration
 
-QAtrial uses `react-i18next` with an HTTP backend for lazy-loading translation files.
+Nathara UQMP uses `react-i18next` with an HTTP backend for lazy-loading translation files.
 
 ```
 i18next
@@ -1329,7 +1329,7 @@ All translations use a single `common` namespace with top-level groupings:
 
 ### CSS Custom Properties System
 
-QAtrial uses CSS custom properties (CSS variables) defined at the `:root` level for all colors, with dark mode overrides under `.dark`:
+Nathara UQMP uses CSS custom properties (CSS variables) defined at the `:root` level for all colors, with dark mode overrides under `.dark`:
 
 ```css
 :root {
@@ -1523,7 +1523,7 @@ npm run test:coverage # Run with coverage report
 ## 21. File Structure
 
 ```
-QAtrial/
+Nathara UQMP/
 |-- server/                            # Backend server
 |   |-- index.ts                       # Hono server entry (port 3001, CORS, route mounting, static serving)
 |   |-- generated/prisma/             # Generated Prisma client

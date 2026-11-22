@@ -14,10 +14,10 @@ type MigrateResult = {
 };
 
 const STORE_KEYS = [
-  { key: 'qatrial:requirements', field: 'state.requirements', endpoint: '/requirements', label: 'Requirements' },
-  { key: 'qatrial:tests', field: 'state.tests', endpoint: '/tests', label: 'Tests' },
-  { key: 'qatrial:capa', field: 'state.records', endpoint: '/capa', label: 'CAPA' },
-  { key: 'qatrial:risk-assessments', field: 'state.assessments', endpoint: '/risks', label: 'Risks' },
+  { key: 'nathara-uqmp:requirements', field: 'state.requirements', endpoint: '/requirements', label: 'Requirements' },
+  { key: 'nathara-uqmp:tests', field: 'state.tests', endpoint: '/tests', label: 'Tests' },
+  { key: 'nathara-uqmp:capa', field: 'state.records', endpoint: '/capa', label: 'CAPA' },
+  { key: 'nathara-uqmp:risk-assessments', field: 'state.assessments', endpoint: '/risks', label: 'Risks' },
 ] as const;
 
 function getNestedValue(obj: Record<string, unknown>, path: string): unknown[] {

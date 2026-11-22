@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const auditrecords = new Hono();
 
-auditrecords.use('*', authMiddleware);
+auditrecords.use('*', ssoAuthMiddleware);
 
 // Upcoming audit schedule (must be before /:id)
 auditrecords.get('/schedule', async (c) => {
@@ -75,7 +75,7 @@ auditrecords.get('/', async (c) => {
 });
 
 // Schedule audit
-auditrecords.post('/', requirePermission('canEdit'), async (c) => {
+auditrecords.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -143,7 +143,7 @@ auditrecords.get('/:id', async (c) => {
 });
 
 // Update audit
-auditrecords.put('/:id', requirePermission('canEdit'), async (c) => {
+auditrecords.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -188,7 +188,7 @@ auditrecords.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Delete audit
-auditrecords.delete('/:id', requirePermission('canDelete'), async (c) => {
+auditrecords.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -219,7 +219,7 @@ auditrecords.delete('/:id', requirePermission('canDelete'), async (c) => {
 });
 
 // Add finding
-auditrecords.post('/:id/findings', requirePermission('canEdit'), async (c) => {
+auditrecords.post('/:id/findings', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -275,7 +275,7 @@ auditrecords.post('/:id/findings', requirePermission('canEdit'), async (c) => {
 });
 
 // Update finding
-auditrecords.put('/:id/findings/:findingId', requirePermission('canEdit'), async (c) => {
+auditrecords.put('/:id/findings/:findingId', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id, findingId } = c.req.param();
@@ -325,7 +325,7 @@ auditrecords.put('/:id/findings/:findingId', requirePermission('canEdit'), async
 });
 
 // Complete audit with report summary
-auditrecords.put('/:id/complete', requirePermission('canEdit'), async (c) => {
+auditrecords.put('/:id/complete', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

@@ -5,7 +5,7 @@ import { useAppMode } from '../../hooks/useAppMode';
 import { useRequirementsStore } from '../../store/useRequirementsStore';
 import { useTestsStore } from '../../store/useTestsStore';
 import { useProjectStore } from '../../store/useProjectStore';
-import { apiFetch } from '../../lib/apiClient';
+import { apiFetch, getStoredToken } from '../../lib/apiClient';
 
 interface ImportWizardProps {
   open: boolean;
@@ -148,7 +148,7 @@ export function ImportWizard({ open, onClose }: ImportWizardProps) {
       try {
         const formData = new FormData();
         formData.append('file', f);
-        const token = localStorage.getItem('qatrial:token');
+        const token = getStoredToken();
         const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
         const res = await fetch(`${API_BASE}/import/preview`, {
           method: 'POST',

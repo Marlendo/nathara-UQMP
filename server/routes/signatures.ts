@@ -1,25 +1,33 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission, roleHasPermission } from '../middleware/auth.js';
+import {
+  ssoAuthMiddleware,
+  requireAdminUQMP,
+  getUser,
+  isSsoFreshForEsign,
+} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
-import * as bcrypt from 'bcryptjs';
+
+// SSO-UQMP migrasi (K17, keputusan R1): re-verify password DIMATIKAN.
+// E-sign memakai step-up SSO: JWT prod harus segar (iat ≤ 300 dtk) +
+// dicatat method 'sso-reauth'. method 'password' DIHAPUS.
 
 const signatures = new Hono();
 
-signatures.use('*', authMiddleware);
+signatures.use('*', ssoAuthMiddleware);
 
-// POST / — create signature (re-verify password per 21 CFR Part 11)
-signatures.post('/', requirePermission('canSign'), async (c) => {
+// POST / — create signature (step-up SSO, bukan password)
+signatures.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
 
-    const { projectId, entityType, entityId, meaning, reason, password } = body;
+    const { projectId, entityType, entityId, meaning, reason } = body;
 
-    if (!projectId || !entityType || !entityId || !meaning || !reason || !password) {
+    if (!projectId || !entityType || !entityId || !meaning || !reason) {
       return c.json({
-        message: 'projectId, entityType, entityId, meaning, reason, and password are required',
+        message: 'projectId, entityType, entityId, meaning, and reason are required',
       }, 400);
     }
 
@@ -28,20 +36,18 @@ signatures.post('/', requirePermission('canSign'), async (c) => {
       return c.json({ message: `meaning must be one of: ${validMeanings.join(', ')}` }, 400);
     }
 
-    const approvalMeanings = new Set(['reviewed', 'approved', 'rejected']);
-    if (approvalMeanings.has(meaning) && !roleHasPermission(user.role, 'canApprove')) {
-      return c.json({ message: 'Insufficient permissions: requires canApprove' }, 403);
+    // Step-up SSO (R1): token harus segar ≤ 5 menit. Selain itu → 403 +
+    // arahkan login ulang SSO (re-auth), bukan password.
+    if (!isSsoFreshForEsign(user)) {
+      return c.json(
+        { message: 'Sesi SSO kedaluwarsa untuk tanda tangan. Silakan login ulang SSO (≤5 menit).' },
+        403,
+      );
     }
 
-    // Re-verify password: fetch user from DB and compare with bcrypt
     const dbUser = await prisma.user.findUnique({ where: { id: user.userId } });
     if (!dbUser) {
       return c.json({ message: 'User not found' }, 404);
-    }
-
-    const passwordValid = await bcrypt.compare(password, dbUser.passwordHash);
-    if (!passwordValid) {
-      return c.json({ message: 'Invalid password — signature rejected' }, 403);
     }
 
     // Create immutable signature record
@@ -53,7 +59,7 @@ signatures.post('/', requirePermission('canSign'), async (c) => {
         userRole: user.role,
         meaning,
         reason,
-        method: 'password',
+        method: 'sso-reauth',
         entityType,
         entityId,
       },
@@ -78,7 +84,7 @@ signatures.post('/', requirePermission('canSign'), async (c) => {
     }
 
     return c.json({ signature }, 201);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Create signature error:', error);
     return c.json({ message: 'Failed to create signature' }, 500);
   }
@@ -95,7 +101,7 @@ signatures.get('/', async (c) => {
       return c.json({ message: 'entityId or projectId query parameter is required' }, 400);
     }
 
-    const where: any = {};
+    const where: Record<string, string> = {};
     if (entityId) where.entityId = entityId;
     if (entityType) where.entityType = entityType;
     if (projectId) where.projectId = projectId;
@@ -106,7 +112,7 @@ signatures.get('/', async (c) => {
     });
 
     return c.json({ signatures: items });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('List signatures error:', error);
     return c.json({ message: 'Failed to list signatures' }, 500);
   }
@@ -123,7 +129,7 @@ signatures.get('/:id', async (c) => {
     }
 
     return c.json({ signature });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Get signature error:', error);
     return c.json({ message: 'Failed to get signature' }, 500);
   }

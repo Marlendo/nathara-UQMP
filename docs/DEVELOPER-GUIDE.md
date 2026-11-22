@@ -1,6 +1,6 @@
-# QAtrial Developer Guide
+# Nathara UQMP Developer Guide
 
-Guide for developers extending and customizing QAtrial.
+Guide for developers extending and customizing Nathara UQMP.
 
 ---
 
@@ -43,8 +43,8 @@ Guide for developers extending and customizing QAtrial.
 ### Clone, Install, Run (Frontend Only)
 
 ```bash
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 npm install
 npm run dev
 ```
@@ -54,20 +54,20 @@ The dev server starts at `http://localhost:5173` with hot module replacement (HM
 ### Full Stack Setup (Frontend + Backend)
 
 ```bash
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 npm install
 
 # 1. Install and start PostgreSQL
 #    macOS: brew install postgresql && brew services start postgresql
 #    Linux: sudo apt install postgresql && sudo systemctl start postgresql
-#    Docker: docker run -p 5432:5432 -e POSTGRES_DB=qatrial -e POSTGRES_PASSWORD=postgres postgres:16
+#    Docker: docker run -p 5432:5432 -e POSTGRES_DB=nathara-uqmp -e POSTGRES_PASSWORD=postgres postgres:16
 
 # 2. Create the database (skip if using Docker with POSTGRES_DB)
-createdb qatrial
+createdb nathara-uqmp
 
 # 3. Set environment variables
-export DATABASE_URL="postgresql://localhost:5432/qatrial"
+export DATABASE_URL="postgresql://localhost:5432/nathara-uqmp"
 export JWT_SECRET="dev-secret-change-in-production"
 
 # 4. Generate the Prisma client
@@ -88,8 +88,8 @@ The backend runs at `http://localhost:3001` with auto-reload on file changes. Th
 ### Docker Setup
 
 ```bash
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 
 # Copy and edit environment file
 cp .env.example .env
@@ -104,10 +104,10 @@ For development with Docker, you can also run just PostgreSQL in Docker and the 
 
 ```bash
 # Start only PostgreSQL
-docker run -d -p 5432:5432 -e POSTGRES_DB=qatrial -e POSTGRES_PASSWORD=qatrial -e POSTGRES_USER=qatrial postgres:16-alpine
+docker run -d -p 5432:5432 -e POSTGRES_DB=nathara-uqmp -e POSTGRES_PASSWORD=nathara-uqmp -e POSTGRES_USER=nathara-uqmp postgres:16-alpine
 
 # Set DATABASE_URL to Docker PostgreSQL
-export DATABASE_URL="postgresql://qatrial:qatrial@localhost:5432/qatrial"
+export DATABASE_URL="postgresql://nathara-uqmp:nathara-uqmp@localhost:5432/nathara-uqmp"
 
 # Run app locally
 npm run db:generate && npm run db:push
@@ -119,8 +119,8 @@ npm run dev          # terminal 2
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `postgresql://localhost:5432/qatrial` | PostgreSQL connection string |
-| `JWT_SECRET` | `qatrial-dev-secret-change-in-production` | Secret for signing JWT tokens |
+| `DATABASE_URL` | `postgresql://localhost:5432/nathara-uqmp` | PostgreSQL connection string |
+| `JWT_SECRET` | `nathara-uqmp-dev-secret-change-in-production` | Secret for signing JWT tokens |
 | `VITE_API_URL` | `http://localhost:3001/api` | API base URL for the frontend |
 | `AI_PROVIDER_TYPE` | (none) | Server-side AI: `anthropic` or `openai` |
 | `AI_PROVIDER_URL` | (none) | Server-side AI base URL |
@@ -970,7 +970,7 @@ connectorRegistry.registerConnector(new JiraConnector());
 
 ### Zustand Store Pattern
 
-All QAtrial stores follow the same pattern with localStorage persistence:
+All Nathara UQMP stores follow the same pattern with localStorage persistence:
 
 ```typescript
 import { create } from 'zustand';
@@ -1005,7 +1005,7 @@ export const useMyStore = create<MyState>()(
       })),
       getById: (id) => get().items.find((item) => item.id === id),
     }),
-    { name: 'qatrial:my-store' }
+    { name: 'nathara-uqmp:my-store' }
   )
 );
 ```
@@ -1013,7 +1013,7 @@ export const useMyStore = create<MyState>()(
 ### Checklist for New Stores
 
 1. Define the state interface with all fields and actions
-2. Use `persist` middleware with a `qatrial:` prefixed key
+2. Use `persist` middleware with a `nathara-uqmp:` prefixed key
 3. Use `crypto.randomUUID()` for IDs or the `generateId()` utility for sequential IDs
 4. Add ISO 8601 timestamps for `createdAt` and `updatedAt`
 5. Implement audit trail logging for CRUD operations using `useAuditStore`
@@ -1141,7 +1141,7 @@ All webhook payloads follow this structure:
 }
 ```
 
-The `X-QAtrial-Signature` header contains `sha256=<HMAC-SHA256 hex digest>` computed with the webhook's secret.
+The `X-Nathara UQMP-Signature` header contains `sha256=<HMAC-SHA256 hex digest>` computed with the webhook's secret.
 
 ---
 
@@ -1149,7 +1149,7 @@ The `X-QAtrial-Signature` header contains `sha256=<HMAC-SHA256 hex digest>` comp
 
 ### Overview
 
-QAtrial supports server-side integrations stored in the `Integration` database model. Currently Jira and GitHub are implemented.
+Nathara UQMP supports server-side integrations stored in the `Integration` database model. Currently Jira and GitHub are implemented.
 
 ### Step-by-Step
 
@@ -1219,13 +1219,13 @@ If using TypeScript validation, add `'myTool'` to the allowed integration types.
 
 ```bash
 # Build the image
-docker build -t qatrial .
+docker build -t nathara-uqmp .
 
 # Run with a local PostgreSQL
 docker run -p 3001:3001 \
-  -e DATABASE_URL=postgresql://user:pass@host:5432/qatrial \
+  -e DATABASE_URL=postgresql://user:pass@host:5432/nathara-uqmp \
   -e JWT_SECRET=your-secret \
-  qatrial
+  nathara-uqmp
 ```
 
 ### Docker Compose Development
@@ -1326,7 +1326,7 @@ docker-compose exec app npx prisma studio --schema=server/prisma/schema.prisma
 
 ### Framework
 
-QAtrial uses **Vitest** with **React Testing Library** and **jsdom** for automated testing.
+Nathara UQMP uses **Vitest** with **React Testing Library** and **jsdom** for automated testing.
 
 ### Writing Tests
 
@@ -1416,7 +1416,7 @@ npm run test:coverage     # Generate coverage report
 
 - [ ] **Create Webhook:** Add a webhook with a URL and events. Save.
 - [ ] **Test Webhook:** Click "Test". Verify the endpoint receives a payload.
-- [ ] **HMAC Verification:** Verify the `X-QAtrial-Signature` header matches the computed HMAC.
+- [ ] **HMAC Verification:** Verify the `X-Nathara UQMP-Signature` header matches the computed HMAC.
 
 ### Integrations
 
@@ -1425,7 +1425,7 @@ npm run test:coverage     # Generate coverage report
 
 ### Docker
 
-- [ ] **docker-compose up:** Start QAtrial + PostgreSQL. Verify `http://localhost:3001` loads.
+- [ ] **docker-compose up:** Start Nathara UQMP + PostgreSQL. Verify `http://localhost:3001` loads.
 - [ ] **Persistence:** Create data, restart containers, verify data persists.
 
 ### Core Functionality

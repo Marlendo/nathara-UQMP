@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const envmon = new Hono();
 
-envmon.use('*', authMiddleware);
+envmon.use('*', ssoAuthMiddleware);
 
 async function findAccessiblePoint(id: string, orgId: string | null) {
   const point = await prisma.monitoringPoint.findUnique({ where: { id } });
@@ -49,7 +49,7 @@ envmon.get('/points', async (c) => {
 });
 
 // Create monitoring point
-envmon.post('/points', requirePermission('canEdit'), async (c) => {
+envmon.post('/points', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -91,7 +91,7 @@ envmon.post('/points', requirePermission('canEdit'), async (c) => {
 });
 
 // Add reading (auto-detect excursion)
-envmon.post('/points/:id/readings', requirePermission('canEdit'), async (c) => {
+envmon.post('/points/:id/readings', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

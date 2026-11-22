@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import * as crypto from 'crypto';
 
 const webhooks = new Hono();
 
-webhooks.use('*', authMiddleware);
+webhooks.use('*', ssoAuthMiddleware);
 
 // GET / — list webhooks for org
 webhooks.get('/', async (c) => {
@@ -34,7 +34,7 @@ webhooks.get('/', async (c) => {
 });
 
 // POST / — create webhook
-webhooks.post('/', requirePermission('canAdmin'), async (c) => {
+webhooks.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -73,7 +73,7 @@ webhooks.post('/', requirePermission('canAdmin'), async (c) => {
 });
 
 // PUT /:id — update webhook
-webhooks.put('/:id', requirePermission('canAdmin'), async (c) => {
+webhooks.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -115,7 +115,7 @@ webhooks.put('/:id', requirePermission('canAdmin'), async (c) => {
 });
 
 // DELETE /:id — delete webhook
-webhooks.delete('/:id', requirePermission('canAdmin'), async (c) => {
+webhooks.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -138,7 +138,7 @@ webhooks.delete('/:id', requirePermission('canAdmin'), async (c) => {
 });
 
 // POST /:id/test — send test event
-webhooks.post('/:id/test', requirePermission('canAdmin'), async (c) => {
+webhooks.post('/:id/test', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -156,7 +156,7 @@ webhooks.post('/:id/test', requirePermission('canAdmin'), async (c) => {
       event: 'webhook.test',
       timestamp: new Date().toISOString(),
       payload: {
-        message: 'This is a test webhook from QAtrial',
+        message: 'This is a test webhook from Nathara UQMP',
         webhookId: webhook.id,
         webhookName: webhook.name,
       },
@@ -164,7 +164,7 @@ webhooks.post('/:id/test', requirePermission('canAdmin'), async (c) => {
 
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'User-Agent': 'QAtrial-Webhook/1.0',
+      'User-Agent': 'Nathara UQMP-Webhook/1.0',
     };
 
     if (webhook.secret) {
@@ -172,7 +172,7 @@ webhooks.post('/:id/test', requirePermission('canAdmin'), async (c) => {
         .createHmac('sha256', webhook.secret)
         .update(body)
         .digest('hex');
-      headers['X-QAtrial-Signature'] = signature;
+      headers['X-Nathara UQMP-Signature'] = signature;
     }
 
     const res = await fetch(webhook.url, {

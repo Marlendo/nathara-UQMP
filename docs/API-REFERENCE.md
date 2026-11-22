@@ -1,4 +1,4 @@
-# QAtrial API Reference
+# Nathara UQMP API Reference
 
 Reference documentation for the REST API, stores, hooks, utilities, and types.
 
@@ -22,7 +22,7 @@ Reference documentation for the REST API, stores, hooks, utilities, and types.
 
 ## 1. REST API
 
-The QAtrial backend exposes a REST API at `http://localhost:3001/api`. All endpoints return JSON. Endpoints marked with "Auth: Yes" require a valid JWT access token in the `Authorization: Bearer <token>` header.
+The Nathara UQMP backend exposes a REST API at `http://localhost:3001/api`. All endpoints return JSON. Endpoints marked with "Auth: Yes" require a valid JWT access token in the `Authorization: Bearer <token>` header.
 
 **80+ endpoints across 28+ route files.**
 
@@ -192,7 +192,7 @@ Redirects to the OIDC identity provider for authentication.
 
 #### GET /api/auth/sso/callback
 
-Handles the OIDC callback after IdP authentication. Exchanges the authorization code for tokens, looks up or provisions the user, and redirects to the frontend with QAtrial JWT tokens.
+Handles the OIDC callback after IdP authentication. Exchanges the authorization code for tokens, looks up or provisions the user, and redirects to the frontend with Nathara UQMP JWT tokens.
 
 **Auth:** No
 
@@ -688,7 +688,7 @@ Check Jira connection status. **Auth:** Yes
 
 #### POST /api/integrations/jira/sync
 
-Bidirectional sync between QAtrial and Jira. **Auth:** Yes
+Bidirectional sync between Nathara UQMP and Jira. **Auth:** Yes
 
 ---
 
@@ -700,7 +700,7 @@ List Jira issues from the connected project. **Auth:** Yes
 
 #### POST /api/integrations/jira/import
 
-Import a Jira issue as a QAtrial requirement. **Auth:** Yes
+Import a Jira issue as a Nathara UQMP requirement. **Auth:** Yes
 
 **Request Body:**
 ```json
@@ -721,7 +721,7 @@ Connect to a GitHub repository. Validates token and repo.
 ```json
 {
   "owner": "MeyerThorsten",
-  "repo": "QAtrial",
+  "repo": "Nathara UQMP",
   "token": "ghp_..."
 }
 ```
@@ -736,7 +736,7 @@ Check GitHub connection status. **Auth:** Yes
 
 #### POST /api/integrations/github/link-pr
 
-Link a GitHub PR to a QAtrial requirement. **Auth:** Yes
+Link a GitHub PR to a Nathara UQMP requirement. **Auth:** Yes
 
 **Request Body:**
 ```json
@@ -1346,7 +1346,7 @@ Standard CRUD. **Auth:** Yes
 
 ### Token-Based Authentication
 
-QAtrial uses JWT-based authentication. After login, include the access token in every API request:
+Nathara UQMP uses JWT-based authentication. After login, include the access token in every API request:
 
 ```
 Authorization: Bearer <accessToken>
@@ -1362,7 +1362,7 @@ curl -X POST /api/auth/refresh \
 
 ### SSO Authentication
 
-When SSO is enabled, users authenticate via OIDC redirect flow. The callback endpoint exchanges the IdP code for QAtrial JWT tokens.
+When SSO is enabled, users authenticate via OIDC redirect flow. The callback endpoint exchanges the IdP code for Nathara UQMP JWT tokens.
 
 ---
 
@@ -1389,7 +1389,7 @@ All endpoints return JSON error responses:
 
 ## 4. Stores
 
-QAtrial uses 20 Zustand stores with localStorage persistence. See [Architecture > State Management](ARCHITECTURE.md#11-state-management) for the full store reference table.
+Nathara UQMP uses 20 Zustand stores with localStorage persistence. See [Architecture > State Management](ARCHITECTURE.md#11-state-management) for the full store reference table.
 
 ---
 

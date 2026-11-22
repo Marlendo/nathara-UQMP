@@ -290,7 +290,7 @@ export function ApprovalPanel({ entityType, entityId, projectId, currentStatus: 
                       signerRole: currentUser?.role || authUser?.role || 'User',
                       timestamp: new Date().toISOString(),
                       meaning: 'approved' as const,
-                      method: currentUser ? 'password-verified' : 'password-unverified',
+                      method: 'sso-reauth',
                     },
                   }
                 : e,
@@ -336,7 +336,7 @@ export function ApprovalPanel({ entityType, entityId, projectId, currentStatus: 
                       signerRole: currentUser?.role || authUser?.role || 'User',
                       timestamp: new Date().toISOString(),
                       meaning: 'rejected' as const,
-                      method: currentUser ? 'password-verified' : 'password-unverified',
+                      method: 'sso-reauth',
                     },
                   }
                 : e,

@@ -1,32 +1,39 @@
 import { createContext, useContext, useState, useCallback, useEffect, useMemo } from 'react';
 import { createElement, type ReactNode } from 'react';
-import { apiFetch } from '../lib/apiClient';
+import {
+  apiFetch,
+  getApiBase,
+  getStoredToken,
+  getStoredRefreshToken,
+  setStoredSession,
+  clearStoredSession,
+} from '../lib/apiClient';
+import { isAdminUQMP } from '../lib/permissions';
+import { useAuthStore } from '../store/useAuthStore';
 
 // ── Types ───────────────────────────────────────────────────────────────────
+// SSO-UQMP migrasi (K21): alur password (login/register/refreshToken lokal)
+// DIMATIKAN. Sesi = JWT prod via SSO Nathara (stateless).
 
 export interface AuthUser {
   id: string;
   email: string;
   name: string;
   role: string;
-  orgId: string;
+  scope: string;
+  orgId: string | null;
 }
 
 export interface AuthState {
   user: AuthUser | null;
   token: string | null;
   isAuthenticated: boolean;
+  isAdminUQMP: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  /** Tukar idToken prod → profil (dipakai callback SSO). */
+  loginWithSsoToken: (idToken: string, refreshToken?: string) => Promise<void>;
   logout: () => void;
-  refreshToken: () => Promise<void>;
 }
-
-// ── Keys ────────────────────────────────────────────────────────────────────
-
-const TOKEN_KEY = 'qatrial:token';
-const REFRESH_KEY = 'qatrial:refresh-token';
 
 // ── Context ─────────────────────────────────────────────────────────────────
 
@@ -36,44 +43,59 @@ const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
-  const [isLoading, setIsLoading] = useState<boolean>(() => !!localStorage.getItem(TOKEN_KEY));
+  const [token, setToken] = useState<string | null>(() => getStoredToken());
+  const [isLoading, setIsLoading] = useState<boolean>(() => getStoredToken() !== null);
 
   const isAuthenticated = !!user && !!token;
 
-  // Persist / clear tokens in localStorage
-  const storeTokens = useCallback((accessToken: string, refreshToken: string) => {
-    localStorage.setItem(TOKEN_KEY, accessToken);
-    localStorage.setItem(REFRESH_KEY, refreshToken);
-    setToken(accessToken);
+  const applyProfile = useCallback((profile: AuthUser, sessionToken: string, refreshToken?: string) => {
+    setStoredSession({ token: sessionToken, refreshToken });
+    setToken(sessionToken);
+    setUser(profile);
+    useAuthStore.getState().setProfile({
+      id: profile.id,
+      email: profile.email,
+      displayName: profile.name,
+      role: profile.role,
+      scope: profile.scope,
+    });
   }, []);
 
-  const clearTokens = useCallback(() => {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_KEY);
+  const clearAll = useCallback(() => {
+    clearStoredSession();
     setToken(null);
     setUser(null);
+    useAuthStore.getState().clearProfile();
   }, []);
 
-  // ── Refresh ─────────────────────────────────────────────────────────────
-
-  const doRefresh = useCallback(async () => {
-    const rt = localStorage.getItem(REFRESH_KEY);
-    if (!rt) throw new Error('No refresh token');
-
-    const res = await apiFetch<{ accessToken: string; refreshToken: string }>('/auth/refresh', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken: rt }),
+  const fetchMe = useCallback(async (sessionToken: string): Promise<AuthUser> => {
+    const res = await apiFetch<{ user: AuthUser }>('/auth/sso/me', {
+      headers: { Authorization: `Bearer ${sessionToken}` },
     });
+    return res.user;
+  }, []);
 
-    storeTokens(res.accessToken, res.refreshToken);
-    return res.accessToken;
-  }, [storeTokens]);
+  const refreshViaBackend = useCallback(async (): Promise<string | null> => {
+    const rt = getStoredRefreshToken();
+    if (!rt) return null;
+    try {
+      const res = await apiFetch<{ accessToken: string; idToken: string; refreshToken?: string }>(
+        '/auth/sso/refresh',
+        { method: 'POST', body: JSON.stringify({ refreshToken: rt }) },
+      );
+      const nextToken = res.idToken || res.accessToken;
+      setStoredSession({ token: nextToken, refreshToken: res.refreshToken ?? rt });
+      setToken(nextToken);
+      return nextToken;
+    } catch {
+      return null;
+    }
+  }, []);
 
-  // ── Validate existing token on mount ────────────────────────────────────
+  // ── Validasi sesi tersimpan saat mount ────────────────────────────────────
 
   useEffect(() => {
-    const storedToken = localStorage.getItem(TOKEN_KEY);
+    const storedToken = getStoredToken();
     if (!storedToken) {
       setIsLoading(false);
       return;
@@ -83,22 +105,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function validate() {
       try {
-        const res = await apiFetch<{ user: AuthUser }>('/auth/me');
+        const profile = await fetchMe(storedToken as string);
         if (!cancelled) {
-          setUser(res.user);
+          setUser(profile);
+          useAuthStore.getState().setProfile({
+            id: profile.id,
+            email: profile.email,
+            displayName: profile.name,
+            role: profile.role,
+            scope: profile.scope,
+          });
         }
       } catch {
-        // Token might be expired — try refresh
         try {
-          await doRefresh();
-          const res = await apiFetch<{ user: AuthUser }>('/auth/me');
-          if (!cancelled) {
-            setUser(res.user);
+          const next = await refreshViaBackend();
+          if (next && !cancelled) {
+            const profile = await fetchMe(next);
+            if (!cancelled) {
+              setUser(profile);
+              useAuthStore.getState().setProfile({
+                id: profile.id,
+                email: profile.email,
+                displayName: profile.name,
+                role: profile.role,
+                scope: profile.scope,
+              });
+            }
+          } else if (!cancelled) {
+            clearAll();
           }
         } catch {
-          // Both failed — clear everything
           if (!cancelled) {
-            clearTokens();
+            clearAll();
           }
         }
       } finally {
@@ -110,68 +148,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     validate();
     return () => { cancelled = true; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchMe, refreshViaBackend, clearAll]);
 
-  // ── Login ───────────────────────────────────────────────────────────────
+  // ── Login via token SSO ───────────────────────────────────────────────────
 
-  const login = useCallback(async (email: string, password: string) => {
-    const res = await apiFetch<{
-      user: AuthUser;
-      accessToken: string;
-      refreshToken: string;
-    }>('/auth/login', {
+  const loginWithSsoToken = useCallback(async (idToken: string, refreshToken?: string) => {
+    const res = await apiFetch<{ user: AuthUser }>('/auth/sso/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ idToken }),
     });
+    applyProfile(res.user, idToken, refreshToken);
+  }, [applyProfile]);
 
-    storeTokens(res.accessToken, res.refreshToken);
-    setUser(res.user);
-  }, [storeTokens]);
-
-  // ── Register ────────────────────────────────────────────────────────────
-
-  const register = useCallback(async (email: string, password: string, name: string) => {
-    const res = await apiFetch<{
-      user: AuthUser;
-      accessToken: string;
-      refreshToken: string;
-    }>('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, name }),
-    });
-
-    storeTokens(res.accessToken, res.refreshToken);
-    setUser(res.user);
-  }, [storeTokens]);
-
-  // ── Logout ──────────────────────────────────────────────────────────────
+  // ── Logout (hapus sesi lokal + redirect portal) ───────────────────────────
 
   const logout = useCallback(() => {
-    clearTokens();
-  }, [clearTokens]);
+    const base = getApiBase();
+    clearAll();
+    // Best-effort: beri tahu backend (audit) lalu ke portal.
+    fetch(`${base}/auth/sso/logout`, {
+      method: 'POST',
+      headers: getStoredToken() ? { Authorization: `Bearer ${getStoredToken()}` } : {},
+    }).catch(() => {});
+  }, [clearAll]);
 
-  // ── Refresh (public) ────────────────────────────────────────────────────
-
-  const refreshTokenFn = useCallback(async () => {
-    await doRefresh();
-    const res = await apiFetch<{ user: AuthUser }>('/auth/me');
-    setUser(res.user);
-  }, [doRefresh]);
-
-  // ── Value ───────────────────────────────────────────────────────────────
+  // ── Value ─────────────────────────────────────────────────────────────────
 
   const value = useMemo<AuthState>(
     () => ({
       user,
       token,
       isAuthenticated,
+      isAdminUQMP: isAdminUQMP(user),
       isLoading,
-      login,
-      register,
+      loginWithSsoToken,
       logout,
-      refreshToken: refreshTokenFn,
     }),
-    [user, token, isAuthenticated, isLoading, login, register, logout, refreshTokenFn],
+    [user, token, isAuthenticated, isLoading, loginWithSsoToken, logout],
   );
 
   return createElement(AuthContext.Provider, { value }, children);

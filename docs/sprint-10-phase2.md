@@ -2,7 +2,7 @@
 
 ## What was built
 
-Phase 2 transforms QAtrial from a tracking tool into an audit-ready quality system with real evidence management, approval workflows, electronic signatures, and one-click audit export.
+Phase 2 transforms Nathara UQMP from a tracking tool into an audit-ready quality system with real evidence management, approval workflows, electronic signatures, and one-click audit export.
 
 ---
 
@@ -80,7 +80,7 @@ Phase 2 transforms QAtrial from a tracking tool into an audit-ready quality syst
 - Login + Register forms with toggle
 - Email, password, name fields
 - Error/loading states, dark mode support
-- Gradient QAtrial branding
+- Gradient Nathara UQMP branding
 
 #### Auth Context (`src/hooks/useAuth.ts`)
 - JWT token management (access + refresh)

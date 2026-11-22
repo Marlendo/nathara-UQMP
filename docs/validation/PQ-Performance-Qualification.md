@@ -1,7 +1,7 @@
 # Performance Qualification (PQ) Protocol
 
 **Document ID:** QA-VAL-PQ-001
-**System:** QAtrial v3.0.0
+**System:** Nathara UQMP v3.0.0
 **Date:** _______________
 **Prepared by:** _______________
 **Customer/Organization:** _______________
@@ -10,13 +10,13 @@
 
 ## 1. Purpose
 
-The purpose of this Performance Qualification (PQ) protocol is to verify that QAtrial performs reliably and consistently in the customer's specific production environment, with their actual data, users, and configuration.
+The purpose of this Performance Qualification (PQ) protocol is to verify that Nathara UQMP performs reliably and consistently in the customer's specific production environment, with their actual data, users, and configuration.
 
 This document is a template. The customer should complete all blank fields to reflect their specific deployment.
 
 ## 2. Scope
 
-This protocol covers the customer-specific validation of QAtrial in its production environment, including:
+This protocol covers the customer-specific validation of Nathara UQMP in its production environment, including:
 
 - Customer-specific configuration (country, vertical, modules)
 - Real-world data import and usage patterns
@@ -70,7 +70,7 @@ Complete the following to document the production environment:
 | **Description** | Import the customer's existing requirements from CSV |
 | **Source File** | _______________ |
 | **Number of Records** | _______________ |
-| **Procedure** | Import the customer's CSV file; map columns to QAtrial fields; verify all records are imported correctly |
+| **Procedure** | Import the customer's CSV file; map columns to Nathara UQMP fields; verify all records are imported correctly |
 | **Expected Result** | All records imported with correct field mapping; no data loss or corruption; sequential IDs assigned |
 | **Actual Result** | _______________ |
 | **Status** | - [ ] Pass / - [ ] Fail |

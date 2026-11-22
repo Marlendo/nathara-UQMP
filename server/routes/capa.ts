@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const capa = new Hono();
 
-capa.use('*', authMiddleware);
+capa.use('*', ssoAuthMiddleware);
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   open: ['investigation'],
@@ -47,7 +47,7 @@ capa.get('/', async (c) => {
   }
 });
 
-capa.post('/', requirePermission('canEdit'), async (c) => {
+capa.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -118,7 +118,7 @@ capa.get('/:id', async (c) => {
   }
 });
 
-capa.put('/:id', requirePermission('canEdit'), async (c) => {
+capa.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -197,7 +197,7 @@ capa.put('/:id', requirePermission('canEdit'), async (c) => {
   }
 });
 
-capa.delete('/:id', requirePermission('canDelete'), async (c) => {
+capa.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

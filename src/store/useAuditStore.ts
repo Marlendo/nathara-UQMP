@@ -80,6 +80,6 @@ export const useAuditStore = create<AuditState>()(
 
       clearEntries: () => set({ entries: [] }),
     }),
-    { name: 'qatrial:audit' }
+    { name: 'nathara-uqmp:audit' }
   )
 );

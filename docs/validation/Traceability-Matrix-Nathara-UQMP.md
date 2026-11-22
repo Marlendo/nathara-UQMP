@@ -1,7 +1,7 @@
 # Regulatory Traceability Matrix
 
 **Document ID:** QA-VAL-TM-001
-**System:** QAtrial v3.0.0
+**System:** Nathara UQMP v3.0.0
 **Date:** _______________
 **Prepared by:** _______________
 
@@ -9,13 +9,13 @@
 
 ## 1. Purpose
 
-This traceability matrix maps QAtrial features to regulatory requirements, demonstrating how each applicable regulatory clause is addressed by the system and verified through qualification testing.
+This traceability matrix maps Nathara UQMP features to regulatory requirements, demonstrating how each applicable regulatory clause is addressed by the system and verified through qualification testing.
 
 ## 2. Traceability Matrix
 
 ### 2.1 FDA 21 CFR Part 11 -- Electronic Records and Electronic Signatures
 
-| Regulatory Requirement | QAtrial Feature | Verification Method |
+| Regulatory Requirement | Nathara UQMP Feature | Verification Method |
 |----------------------|-----------------|---------------------|
 | 21 CFR 11.10(a) -- System validation | IQ/OQ/PQ protocols; automated test suite (Vitest) | OQ test suite execution |
 | 21 CFR 11.10(b) -- Legible, readily retrievable records | Export to CSV, HTML, and PDF; searchable data views | OQ-011: Audit trail export; OQ-012: HTML report export |
@@ -35,7 +35,7 @@ This traceability matrix maps QAtrial features to regulatory requirements, demon
 
 ### 2.2 EU Annex 11 -- Computerised Systems
 
-| Regulatory Requirement | QAtrial Feature | Verification Method |
+| Regulatory Requirement | Nathara UQMP Feature | Verification Method |
 |----------------------|-----------------|---------------------|
 | Annex 11 §1 -- Risk management | Risk module: severity, likelihood, detectability scoring; AI classification | OQ-008: AI risk classification |
 | Annex 11 §2 -- Personnel | RBAC with 5 defined roles; permission-based access | OQ-018: RBAC verification |
@@ -57,7 +57,7 @@ This traceability matrix maps QAtrial features to regulatory requirements, demon
 
 ### 2.3 ISO 13485 -- Medical Devices Quality Management Systems
 
-| Regulatory Requirement | QAtrial Feature | Verification Method |
+| Regulatory Requirement | Nathara UQMP Feature | Verification Method |
 |----------------------|-----------------|---------------------|
 | ISO 13485 §4.1 -- QMS general requirements | Configurable quality workspace (country, vertical, modules) | OQ-001: Project creation wizard |
 | ISO 13485 §4.2.4 -- Document control | Version tracking; approval workflows; status lifecycle | OQ-004: Requirement status lifecycle; OQ-009: Approval |
@@ -80,7 +80,7 @@ This traceability matrix maps QAtrial features to regulatory requirements, demon
 
 ### 2.4 ISO 14971 -- Risk Management for Medical Devices
 
-| Regulatory Requirement | QAtrial Feature | Verification Method |
+| Regulatory Requirement | Nathara UQMP Feature | Verification Method |
 |----------------------|-----------------|---------------------|
 | ISO 14971 §4 -- Risk analysis | Risk module: severity, likelihood, detectability scoring | OQ-008: AI risk classification |
 | ISO 14971 §5 -- Risk evaluation | Risk level calculation (Low/Medium/High/Critical) | OQ-008: AI risk classification |
@@ -91,7 +91,7 @@ This traceability matrix maps QAtrial features to regulatory requirements, demon
 
 ### 2.5 IEC 62304 -- Medical Device Software Lifecycle
 
-| Regulatory Requirement | QAtrial Feature | Verification Method |
+| Regulatory Requirement | Nathara UQMP Feature | Verification Method |
 |----------------------|-----------------|---------------------|
 | IEC 62304 §5.1 -- Software development planning | Project wizard with module and vertical selection | OQ-001: Project creation |
 | IEC 62304 §5.2 -- Software requirements analysis | Requirements module with traceability | OQ-002: Requirement creation |
@@ -105,7 +105,7 @@ This traceability matrix maps QAtrial features to regulatory requirements, demon
 
 ### 2.6 GAMP 5 -- Computer System Validation
 
-| Regulatory Requirement | QAtrial Feature | Verification Method |
+| Regulatory Requirement | Nathara UQMP Feature | Verification Method |
 |----------------------|-----------------|---------------------|
 | GAMP 5 -- Risk-based approach | Configurable modules per vertical; risk assessment module | OQ-001: Project creation; OQ-008: Risk classification |
 | GAMP 5 -- Supplier assessment | Open-source; full source code audit capability | Source code repository; this document |

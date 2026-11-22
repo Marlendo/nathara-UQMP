@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const deviations = new Hono();
 
-deviations.use('*', authMiddleware);
+deviations.use('*', ssoAuthMiddleware);
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   detected: ['investigating'],
@@ -86,7 +86,7 @@ deviations.get('/', async (c) => {
 });
 
 // POST / — create (auto-generate DEV-NNN number)
-deviations.post('/', requirePermission('canEdit'), async (c) => {
+deviations.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -152,7 +152,7 @@ deviations.get('/:id', async (c) => {
 });
 
 // PUT /:id — update (with status transition validation)
-deviations.put('/:id', requirePermission('canEdit'), async (c) => {
+deviations.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -205,7 +205,7 @@ deviations.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // DELETE /:id — delete
-deviations.delete('/:id', requirePermission('canDelete'), async (c) => {
+deviations.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -222,7 +222,7 @@ deviations.delete('/:id', requirePermission('canDelete'), async (c) => {
 });
 
 // PUT /:id/investigate — start investigation
-deviations.put('/:id/investigate', requirePermission('canEdit'), async (c) => {
+deviations.put('/:id/investigate', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -259,7 +259,7 @@ deviations.put('/:id/investigate', requirePermission('canEdit'), async (c) => {
 });
 
 // PUT /:id/root-cause — record root cause
-deviations.put('/:id/root-cause', requirePermission('canEdit'), async (c) => {
+deviations.put('/:id/root-cause', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -295,7 +295,7 @@ deviations.put('/:id/root-cause', requirePermission('canEdit'), async (c) => {
 });
 
 // PUT /:id/create-capa — auto-create CAPA linked to this deviation
-deviations.put('/:id/create-capa', requirePermission('canEdit'), async (c) => {
+deviations.put('/:id/create-capa', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

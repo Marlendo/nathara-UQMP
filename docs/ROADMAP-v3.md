@@ -1,8 +1,8 @@
-# QAtrial v3.0 — Strategic Feature Roadmap
+# Nathara UQMP v3.0 — Strategic Feature Roadmap
 
 ## Context
 
-QAtrial has a broad frontend feature surface, a real backend foundation, and a large strategic backlog. The near-term constraint is not lack of ideas. It is execution convergence: the platform still needs contract alignment across Prisma, server routes, and frontend server mode before more strategic families can be shipped safely.
+Nathara UQMP has a broad frontend feature surface, a real backend foundation, and a large strategic backlog. The near-term constraint is not lack of ideas. It is execution convergence: the platform still needs contract alignment across Prisma, server routes, and frontend server mode before more strategic families can be shipped safely.
 
 The $12.5B QMS market (growing to $31.5B by 2034) is being reshaped by three forces:
 
@@ -10,13 +10,13 @@ The $12.5B QMS market (growing to $31.5B by 2034) is being reshaped by three for
 2. **EU AI Act** (high-risk devices deadline Aug 2, 2027) — requires AI transparency, data governance, bias documentation
 3. **ICH E6(R3)** (adopted 2025) — enables decentralized trials, risk-based quality management
 
-QAtrial's competitive advantage is: open-source transparency (auditors inspect source), AI co-pilot, self-hosted data sovereignty, and composable Country × Vertical × Module architecture. The gap vs. commercial tools (Veeva, MasterControl, Greenlight Guru) is primarily in **platform convergence**, **audit-ready operational depth**, **vertical-specific workflows**, and **enterprise operational features**.
+Nathara UQMP's competitive advantage is: open-source transparency (auditors inspect source), AI co-pilot, self-hosted data sovereignty, and composable Country × Vertical × Module architecture. The gap vs. commercial tools (Veeva, MasterControl, Greenlight Guru) is primarily in **platform convergence**, **audit-ready operational depth**, **vertical-specific workflows**, and **enterprise operational features**.
 
 ---
 
 ## Execution Gate
 
-Before shipping any major new strategic feature family, QAtrial should complete the following:
+Before shipping any major new strategic feature family, Nathara UQMP should complete the following:
 
 1. Align Prisma schema, server routes, and frontend API contracts for core entities.
 2. Make server mode the supported multi-user path for projects, requirements, tests, approvals, evidence, audit, and dashboards.
@@ -97,7 +97,7 @@ This strategic roadmap therefore assumes the concrete 3-phase execution plan in 
 
 ### E. AI-Powered Features (Differentiators)
 
-**Why:** Enterprise customers are asking for AI beyond basic generation. The competitive moat for QAtrial is AI-native quality management.
+**Why:** Enterprise customers are asking for AI beyond basic generation. The competitive moat for Nathara UQMP is AI-native quality management.
 
 | # | Feature | Description | Differentiation |
 |---|---------|-------------|----------------|

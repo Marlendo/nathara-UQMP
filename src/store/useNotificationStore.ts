@@ -72,6 +72,6 @@ export const useNotificationStore = create<NotificationState>()(
         }));
       },
     }),
-    { name: 'qatrial:notifications' }
+    { name: 'nathara-uqmp:notifications' }
   )
 );

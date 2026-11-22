@@ -98,6 +98,6 @@ export const useGapStore = create<GapState>()(
         return latest.gaps.filter((g) => g.status === 'missing' || g.status === 'partial');
       },
     }),
-    { name: 'qatrial:gap-analysis' }
+    { name: 'nathara-uqmp:gap-analysis' }
   )
 );

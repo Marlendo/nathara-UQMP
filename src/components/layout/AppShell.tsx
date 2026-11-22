@@ -270,7 +270,7 @@ export function AppShell() {
                 <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-gradient-start to-gradient-end flex items-center justify-center">
                   <span className="text-xs font-bold text-white">QA</span>
                 </div>
-                <h1 className="text-lg font-bold text-text-primary tracking-tight">QAtrial</h1>
+                <h1 className="text-lg font-bold text-text-primary tracking-tight">Nathara UQMP</h1>
               </div>
               {project && (
                 <>

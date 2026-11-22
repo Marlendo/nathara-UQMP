@@ -25,7 +25,7 @@ export function useImportExport() {
     };
     const fileName = project?.name
       ? `${project.name.replace(/\s+/g, '-').toLowerCase()}-${new Date().toISOString().slice(0, 10)}.json`
-      : `qatrial-export-${new Date().toISOString().slice(0, 10)}.json`;
+      : `nathara-uqmp-export-${new Date().toISOString().slice(0, 10)}.json`;
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

@@ -15,6 +15,6 @@ export const useProjectStore = create<ProjectState>()(
       setProject: (meta) => set({ project: meta }),
       clearProject: () => set({ project: null }),
     }),
-    { name: 'qatrial:project' }
+    { name: 'nathara-uqmp:project' }
   )
 );

@@ -1,10 +1,10 @@
-# QAtrial — Regulated Quality Workspace
+# Nathara UQMP — Regulated Quality Workspace
 
 **Open-source, AI-powered quality management platform for regulated industries.**
 
-QAtrial is a full-stack quality management system built for pharma, medical devices, biotech, CROs, and software/GAMP teams. It combines requirements and test management with AI-assisted compliance, electronic signatures, audit trails, and industry-specific workflows — all under the AGPL-3.0 license.
+Nathara UQMP is a full-stack quality management system built for pharma, medical devices, biotech, CROs, and software/GAMP teams. It combines requirements and test management with AI-assisted compliance, electronic signatures, audit trails, and industry-specific workflows — all under the AGPL-3.0 license.
 
-**Live Demo:** [qatrial.vercel.app](https://qatrial.vercel.app) | **Website:** [qatrial.com](https://qatrial.com)
+**Live Demo:** [nathara-uqmp.vercel.app](https://nathara-uqmp.vercel.app) | **Website:** [nathara-uqmp.com](https://nathara-uqmp.com)
 
 ---
 
@@ -96,9 +96,9 @@ QAtrial is a full-stack quality management system built for pharma, medical devi
     └──────────────┘
 ```
 
-**Dual mode:** QAtrial runs in **standalone mode** (browser-only, localStorage, no server needed) for demos and individual use, or **server mode** (PostgreSQL-backed, multi-user, API-driven) for team and enterprise use. Same codebase, same UI — just set `VITE_API_URL` to switch.
+**Dual mode:** Nathara UQMP runs in **standalone mode** (browser-only, localStorage, no server needed) for demos and individual use, or **server mode** (PostgreSQL-backed, multi-user, API-driven) for team and enterprise use. Same codebase, same UI — just set `VITE_API_URL` to switch.
 
-**Kubernetes:** Deploy via Helm chart (`helm/qatrial/`) with configurable replicas, ingress, TLS, persistent volumes, and secrets.
+**Kubernetes:** Deploy via Helm chart (`helm/nathara-uqmp/`) with configurable replicas, ingress, TLS, persistent volumes, and secrets.
 
 ## Core Model
 
@@ -271,7 +271,7 @@ One-click setup for common regulatory frameworks via the wizard's Step 0:
 | OQ (Operational Qualification) | 18 test steps verifying correct operation |
 | PQ (Performance Qualification) | Template for customer-specific validation |
 | Compliance Statement | 21 CFR Part 11 (15 sections) + EU Annex 11 (17 sections) + GAMP 5 Cat 4 alignment |
-| Traceability Matrix | 75 regulatory requirements mapped to QAtrial features + IQ/OQ/PQ test IDs |
+| Traceability Matrix | 75 regulatory requirements mapped to Nathara UQMP features + IQ/OQ/PQ test IDs |
 
 ### Backend Server (v4.0.0)
 - **Hono** TypeScript-first HTTP framework on Node.js
@@ -326,7 +326,7 @@ See the **Technology** table above for the full stack. Key dependencies:
 ## Project Structure
 
 ```
-QAtrial/
+Nathara UQMP/
 ├── server/                          # Backend server
 │   ├── index.ts                     # Hono server entry point (port 3001)
 │   ├── prisma/
@@ -442,14 +442,14 @@ QAtrial/
 ### Option 1: Docker (Recommended for Production)
 
 ```bash
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 
 # Copy environment template and configure
 cp .env.example .env
 # Edit .env to set JWT_SECRET, AI provider keys, SSO config, etc.
 
-# Start QAtrial + PostgreSQL
+# Start Nathara UQMP + PostgreSQL
 docker-compose up
 
 # Access at http://localhost:3001
@@ -460,8 +460,8 @@ Docker Compose starts the app and a PostgreSQL 16 database with health checks, n
 ### Option 2: Frontend Only (Demo/Standalone Mode)
 
 ```bash
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 npm install
 npm run dev
 ```
@@ -471,8 +471,8 @@ The frontend dev server starts on `http://localhost:5173`. In this mode all data
 ### Option 3: Full Stack (Frontend + Backend, Local Development)
 
 ```bash
-git clone https://github.com/MeyerThorsten/QAtrial.git
-cd QAtrial
+git clone https://github.com/MeyerThorsten/Nathara UQMP.git
+cd Nathara UQMP
 npm install
 
 # 1. Install and start PostgreSQL (if not already running)
@@ -480,10 +480,10 @@ npm install
 #    Linux: sudo apt install postgresql && sudo systemctl start postgresql
 
 # 2. Create the database
-createdb qatrial
+createdb nathara-uqmp
 
 # 3. Set environment variables
-export DATABASE_URL="postgresql://localhost:5432/qatrial"
+export DATABASE_URL="postgresql://localhost:5432/nathara-uqmp"
 export JWT_SECRET="your-secret-key-change-in-production"
 
 # 4. Generate Prisma client and push schema
@@ -528,8 +528,8 @@ curl http://localhost:3001/api/status
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `DATABASE_URL` | `postgresql://localhost:5432/qatrial` | PostgreSQL connection string |
-| `JWT_SECRET` | `qatrial-dev-secret-change-in-production` | Secret for signing JWT tokens |
+| `DATABASE_URL` | `postgresql://localhost:5432/nathara-uqmp` | PostgreSQL connection string |
+| `JWT_SECRET` | `nathara-uqmp-dev-secret-change-in-production` | Secret for signing JWT tokens |
 | `VITE_API_URL` | `http://localhost:3001/api` | API base URL for the frontend |
 | `AI_PROVIDER_TYPE` | (none) | Server-side AI provider: `anthropic` or `openai` |
 | `AI_PROVIDER_URL` | (none) | Server-side AI provider base URL |
@@ -565,16 +565,16 @@ Go to Settings > AI Providers tab to configure LLM providers:
 
 - [User Guide](docs/USER-GUIDE.md) -- Complete end-user documentation
 - [Architecture](docs/ARCHITECTURE.md) -- Technical architecture overview
-- [Developer Guide](docs/DEVELOPER-GUIDE.md) -- How to extend QAtrial (add countries, verticals, languages)
+- [Developer Guide](docs/DEVELOPER-GUIDE.md) -- How to extend Nathara UQMP (add countries, verticals, languages)
 - [API Reference](docs/API-REFERENCE.md) -- REST API, stores, hooks, utilities, type definitions
 - [Regulatory Reference](docs/REGULATORY-REFERENCE.md) -- Standards and frameworks by country and vertical
 
 ## Contributing
 
-QAtrial is open source and welcomes contributions. See the [Developer Guide](docs/DEVELOPER-GUIDE.md) for how to add countries, verticals, modules, languages, and AI prompts.
+Nathara UQMP is open source and welcomes contributions. See the [Developer Guide](docs/DEVELOPER-GUIDE.md) for how to add countries, verticals, modules, languages, and AI prompts.
 
 ## License
 
 This project is licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0).
 
-You are free to use, modify, and distribute this software. If you modify QAtrial and provide it as a service over a network, you must make your modified source code available under the same license.
+You are free to use, modify, and distribute this software. If you modify Nathara UQMP and provide it as a service over a network, you must make your modified source code available under the same license.

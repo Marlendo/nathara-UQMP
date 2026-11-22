@@ -203,6 +203,6 @@ export const useWorkflowStore = create<WorkflowState>()(
         });
       },
     }),
-    { name: 'qatrial:workflow' }
+    { name: 'nathara-uqmp:workflow' }
   )
 );

@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { logAudit } from '../services/audit.service.js';
 
 const importRoutes = new Hono();
 
-importRoutes.use('*', authMiddleware);
+importRoutes.use('*', ssoAuthMiddleware);
 
 // ── CSV Parsing Utilities ──────────────────────────────────────────────────
 
@@ -218,7 +218,7 @@ interface ImportMapping {
   linkedRequirements?: number | null;
 }
 
-importRoutes.post('/execute', requirePermission('canEdit'), async (c) => {
+importRoutes.post('/execute', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();

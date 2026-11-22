@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { findAccessibleProject, listAccessibleProjectIds } from '../lib/projectAccess.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const workflows = new Hono();
 
-workflows.use('*', authMiddleware);
+workflows.use('*', ssoAuthMiddleware);
 
 // ── Condition Evaluation Engine ────────────────────────────────────────────
 
@@ -77,7 +77,7 @@ workflows.get('/templates', async (c) => {
 });
 
 // POST /templates — create template with steps (admin)
-workflows.post('/templates', requirePermission('canAdmin'), async (c) => {
+workflows.post('/templates', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -139,7 +139,7 @@ workflows.get('/templates/:id', async (c) => {
 });
 
 // PUT /templates/:id — update (admin)
-workflows.put('/templates/:id', requirePermission('canAdmin'), async (c) => {
+workflows.put('/templates/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -189,7 +189,7 @@ workflows.put('/templates/:id', requirePermission('canAdmin'), async (c) => {
 });
 
 // DELETE /templates/:id — delete (admin)
-workflows.delete('/templates/:id', requirePermission('canAdmin'), async (c) => {
+workflows.delete('/templates/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -249,7 +249,7 @@ workflows.post('/templates/:id/simulate', async (c) => {
 // ── Execution ───────────────────────────────────────────────────────────────
 
 // POST /execute — start workflow execution on entity
-workflows.post('/execute', requirePermission('canEdit'), async (c) => {
+workflows.post('/execute', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();

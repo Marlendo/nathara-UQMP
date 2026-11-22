@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 
 const etmf = new Hono();
 
-etmf.use('*', authMiddleware);
+etmf.use('*', ssoAuthMiddleware);
 
 // ── TMF Reference Model v3.3 Structure ────────────────────────────────────────
 
@@ -129,7 +129,7 @@ const TMF_REFERENCE_MODEL: ZoneDef[] = [
 ];
 
 // Initialize TMF for a project
-etmf.post('/:projectId/initialize', requirePermission('canEdit'), async (c) => {
+etmf.post('/:projectId/initialize', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { projectId } = c.req.param();
@@ -303,7 +303,7 @@ etmf.get('/:projectId/sections/:sectionId/artifacts', async (c) => {
 });
 
 // Upload file to artifact slot
-etmf.post('/:projectId/artifacts/:artifactId/upload', requirePermission('canEdit'), async (c) => {
+etmf.post('/:projectId/artifacts/:artifactId/upload', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { projectId, artifactId } = c.req.param();
@@ -351,7 +351,7 @@ etmf.post('/:projectId/artifacts/:artifactId/upload', requirePermission('canEdit
 });
 
 // Approve artifact
-etmf.put('/:projectId/artifacts/:artifactId/approve', requirePermission('canApprove'), async (c) => {
+etmf.put('/:projectId/artifacts/:artifactId/approve', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { projectId, artifactId } = c.req.param();
@@ -393,7 +393,7 @@ etmf.put('/:projectId/artifacts/:artifactId/approve', requirePermission('canAppr
 });
 
 // Mark artifact as not applicable
-etmf.put('/:projectId/artifacts/:artifactId/na', requirePermission('canEdit'), async (c) => {
+etmf.put('/:projectId/artifacts/:artifactId/na', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { projectId, artifactId } = c.req.param();

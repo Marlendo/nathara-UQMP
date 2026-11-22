@@ -1,12 +1,12 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
 import { findAccessibleProject } from '../lib/projectAccess.js';
-import { authMiddleware, getUser, roleHasPermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, roleHasPermission } from '../middleware/ssoAuth.js';
 import { createNotification } from './notifications.js';
 
 const comments = new Hono();
 
-comments.use('*', authMiddleware);
+comments.use('*', ssoAuthMiddleware);
 
 // GET / — list comments for entity (threaded: parent + children)
 comments.get('/', async (c) => {

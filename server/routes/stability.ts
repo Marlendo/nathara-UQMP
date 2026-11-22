@@ -1,13 +1,13 @@
 import { Hono } from 'hono';
 import { findAccessibleProject } from '../lib/projectAccess.js';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { logAudit } from '../services/audit.service.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const stability = new Hono();
 
-stability.use('*', authMiddleware);
+stability.use('*', ssoAuthMiddleware);
 
 async function findAccessibleStudy(id: string, orgId: string | null) {
   const study = await prisma.stabilityStudy.findUnique({ where: { id } });
@@ -67,7 +67,7 @@ stability.get('/', async (c) => {
 });
 
 // Create study
-stability.post('/', requirePermission('canEdit'), async (c) => {
+stability.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -132,7 +132,7 @@ stability.get('/:id', async (c) => {
 });
 
 // Update study
-stability.put('/:id', requirePermission('canEdit'), async (c) => {
+stability.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -173,7 +173,7 @@ stability.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Delete study
-stability.delete('/:id', requirePermission('canDelete'), async (c) => {
+stability.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -202,7 +202,7 @@ stability.delete('/:id', requirePermission('canDelete'), async (c) => {
 });
 
 // Add sample result
-stability.post('/:id/samples', requirePermission('canEdit'), async (c) => {
+stability.post('/:id/samples', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

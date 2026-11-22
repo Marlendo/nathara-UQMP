@@ -14,7 +14,7 @@ i18n
 
     detection: {
       order: ['localStorage', 'navigator'],
-      lookupLocalStorage: 'qatrial:language',
+      lookupLocalStorage: 'nathara-uqmp:language',
       caches: ['localStorage'],
     },
 

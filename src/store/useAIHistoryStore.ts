@@ -153,6 +153,6 @@ export const useAIHistoryStore = create<AIHistoryState>()(
         };
       },
     }),
-    { name: 'qatrial:ai-history' }
+    { name: 'nathara-uqmp:ai-history' }
   )
 );

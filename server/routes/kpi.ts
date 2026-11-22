@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { listAccessibleProjectIds } from '../lib/projectAccess.js';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission, roleHasPermission, type JwtPayload } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, roleHasPermission, type JwtPayload, requireAdminUQMP} from '../middleware/ssoAuth.js';
 
 const kpi = new Hono();
 
-kpi.use('*', authMiddleware);
+kpi.use('*', ssoAuthMiddleware);
 
 // ── Metrics Catalog ─────────────────────────────────────────────────────────
 
@@ -108,7 +108,7 @@ kpi.get('/dashboards', async (c) => {
 });
 
 // POST /dashboards — create dashboard
-kpi.post('/dashboards', requirePermission('canEdit'), async (c) => {
+kpi.post('/dashboards', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -155,7 +155,7 @@ kpi.get('/dashboards/:id', async (c) => {
 });
 
 // PUT /dashboards/:id — update name/description/public
-kpi.put('/dashboards/:id', requirePermission('canEdit'), async (c) => {
+kpi.put('/dashboards/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -208,7 +208,7 @@ kpi.delete('/dashboards/:id', async (c) => {
 // ── Widget CRUD ─────────────────────────────────────────────────────────────
 
 // POST /dashboards/:id/widgets — add widget
-kpi.post('/dashboards/:id/widgets', requirePermission('canEdit'), async (c) => {
+kpi.post('/dashboards/:id/widgets', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -254,7 +254,7 @@ kpi.post('/dashboards/:id/widgets', requirePermission('canEdit'), async (c) => {
 });
 
 // PUT /dashboards/:id/widgets/:widgetId — update widget config
-kpi.put('/dashboards/:id/widgets/:widgetId', requirePermission('canEdit'), async (c) => {
+kpi.put('/dashboards/:id/widgets/:widgetId', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { widgetId } = c.req.param();
@@ -291,7 +291,7 @@ kpi.put('/dashboards/:id/widgets/:widgetId', requirePermission('canEdit'), async
 });
 
 // DELETE /dashboards/:id/widgets/:widgetId — remove widget
-kpi.delete('/dashboards/:id/widgets/:widgetId', requirePermission('canEdit'), async (c) => {
+kpi.delete('/dashboards/:id/widgets/:widgetId', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { widgetId } = c.req.param();
@@ -312,7 +312,7 @@ kpi.delete('/dashboards/:id/widgets/:widgetId', requirePermission('canEdit'), as
 });
 
 // PUT /dashboards/:id/reorder — reorder widgets
-kpi.put('/dashboards/:id/reorder', requirePermission('canEdit'), async (c) => {
+kpi.put('/dashboards/:id/reorder', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

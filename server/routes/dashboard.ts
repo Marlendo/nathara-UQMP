@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser } from '../middleware/ssoAuth.js';
 
 const dashboard = new Hono();
 
-dashboard.use('*', authMiddleware);
+dashboard.use('*', ssoAuthMiddleware);
 
 function buildTraceabilityLinks(tests: Array<{ id: string; linkedRequirementIds: string[] }>) {
   return tests.flatMap((test) =>

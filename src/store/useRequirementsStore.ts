@@ -83,6 +83,6 @@ export const useRequirementsStore = create<RequirementsState>()(
         set({ requirements: reqs, reqCounter: counter });
       },
     }),
-    { name: 'qatrial:requirements' }
+    { name: 'nathara-uqmp:requirements' }
   )
 );

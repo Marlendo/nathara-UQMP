@@ -30,7 +30,7 @@ export async function dispatchWebhook(
 
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',
-        'User-Agent': 'QAtrial-Webhook/1.0',
+        'User-Agent': 'Nathara UQMP-Webhook/1.0',
       };
 
       // If secret is configured, add HMAC-SHA256 signature
@@ -39,7 +39,7 @@ export async function dispatchWebhook(
           .createHmac('sha256', webhook.secret)
           .update(body)
           .digest('hex');
-        headers['X-QAtrial-Signature'] = signature;
+        headers['X-Nathara UQMP-Signature'] = signature;
       }
 
       try {

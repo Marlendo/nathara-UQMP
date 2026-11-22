@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { prisma } from '../../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../../middleware/ssoAuth.js';
 
 const jira = new Hono();
 
-jira.use('*', authMiddleware);
+jira.use('*', ssoAuthMiddleware);
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ async function getJiraConfig(orgId: string) {
 
 // ── POST /connect — validate and store Jira configuration ──────────────────
 
-jira.post('/connect', requirePermission('canAdmin'), async (c) => {
+jira.post('/connect', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const body = await c.req.json();
@@ -130,7 +130,7 @@ jira.get('/status', async (c) => {
 
 // ── POST /sync — sync requirements to/from Jira ───────────────────────────
 
-jira.post('/sync', requirePermission('canAdmin'), async (c) => {
+jira.post('/sync', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     if (!user.orgId) {
@@ -308,7 +308,7 @@ jira.get('/issues', async (c) => {
 
 // ── POST /import/:issueKey — import a Jira issue as a requirement ──────────
 
-jira.post('/import/:issueKey', requirePermission('canEdit'), async (c) => {
+jira.post('/import/:issueKey', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { issueKey } = c.req.param();

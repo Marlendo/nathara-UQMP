@@ -139,7 +139,7 @@ export const useDesignControlStore = create<DesignControlState>()(
         return true;
       },
     }),
-    { name: 'qatrial:design-control' }
+    { name: 'nathara-uqmp:design-control' }
   )
 );
 

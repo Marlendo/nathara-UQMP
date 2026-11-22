@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { prisma } from '../lib/prisma.js';
-import { authMiddleware, getUser, requirePermission } from '../middleware/auth.js';
+import { ssoAuthMiddleware, getUser, requireAdminUQMP} from '../middleware/ssoAuth.js';
 import { dispatchWebhook } from '../services/webhook.service.js';
 
 const systems = new Hono();
 
-systems.use('*', authMiddleware);
+systems.use('*', ssoAuthMiddleware);
 
 async function findAccessibleSystem(id: string, orgId: string | null) {
   if (!orgId) {
@@ -64,7 +64,7 @@ systems.get('/', async (c) => {
 });
 
 // Create system
-systems.post('/', requirePermission('canEdit'), async (c) => {
+systems.post('/', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     if (!user.orgId) {
@@ -132,7 +132,7 @@ systems.get('/:id', async (c) => {
 });
 
 // Update system
-systems.put('/:id', requirePermission('canEdit'), async (c) => {
+systems.put('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -166,7 +166,7 @@ systems.put('/:id', requirePermission('canEdit'), async (c) => {
 });
 
 // Delete system
-systems.delete('/:id', requirePermission('canDelete'), async (c) => {
+systems.delete('/:id', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -186,7 +186,7 @@ systems.delete('/:id', requirePermission('canDelete'), async (c) => {
 });
 
 // Create periodic review
-systems.post('/:id/reviews', requirePermission('canEdit'), async (c) => {
+systems.post('/:id/reviews', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();
@@ -215,7 +215,7 @@ systems.post('/:id/reviews', requirePermission('canEdit'), async (c) => {
 });
 
 // Update periodic review
-systems.put('/:id/reviews/:reviewId', requirePermission('canEdit'), async (c) => {
+systems.put('/:id/reviews/:reviewId', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id, reviewId } = c.req.param();
@@ -264,7 +264,7 @@ systems.put('/:id/reviews/:reviewId', requirePermission('canEdit'), async (c) =>
 });
 
 // Retire system
-systems.put('/:id/retire', requirePermission('canEdit'), async (c) => {
+systems.put('/:id/retire', requireAdminUQMP(), async (c) => {
   try {
     const user = getUser(c);
     const { id } = c.req.param();

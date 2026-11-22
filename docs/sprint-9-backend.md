@@ -2,7 +2,7 @@
 
 ## What was built
 
-QAtrial now has a real backend server, transforming it from a localStorage demo into a multi-user system.
+Nathara UQMP now has a real backend server, transforming it from a localStorage demo into a multi-user system.
 
 ### Stack
 - **Runtime**: Node.js + tsx (TypeScript execution)
@@ -55,8 +55,8 @@ npm run db:studio     # Open Prisma Studio GUI
 
 ### To run the backend
 ```bash
-# 1. Set DATABASE_URL (or use default postgresql://localhost:5432/qatrial)
-export DATABASE_URL="postgresql://user:pass@localhost:5432/qatrial"
+# 1. Set DATABASE_URL (or use default postgresql://localhost:5432/nathara-uqmp)
+export DATABASE_URL="postgresql://user:pass@localhost:5432/nathara-uqmp"
 
 # 2. Generate Prisma client
 npm run db:generate
