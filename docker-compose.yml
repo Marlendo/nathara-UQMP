@@ -28,6 +28,8 @@ services:
         condition: service_healthy
     volumes:
       - uqmp-uploads:/app/uploads
+    networks:
+      - siakad-network
     restart: unless-stopped
 
   db:
@@ -50,4 +52,10 @@ services:
 
 volumes:
   uqmp-pgdata:
+    external: true
   uqmp-uploads:
+    external: true
+
+networks:
+  siakad-network:
+    external: true
