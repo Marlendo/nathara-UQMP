@@ -1,3 +1,14 @@
+# DB = cluster SHARED `staging-postgres-18` (network `staging-shared`,
+# database `uqmp`, user `uqmp`) — OVERRIDE human 2026-11-23 (isolasi
+# per-app dicabut; pola Safe Campus commit 4c98a2f). TIDAK ada service
+# `db` lokal lagi; volume lama `uqmp-pgdata` DIARSIPKAN (JANGAN `down -v`
+# — jalan mundur; container lama `uqmp-postgres` dibiarkan hidup).
+#
+# Kredensial: UQMP_DB_PASSWORD dari file VPS
+# /home/marlendo/staging/docker/.env (JANGAN commit nilai asli).
+# Runbook restart:
+#   export UQMP_DB_PASSWORD="$(grep -E '^UQMP_DB_PASSWORD=' /home/marlendo/staging/docker/.env | cut -d= -f2-)"
+#   docker compose --env-file /home/marlendo/nathara/.env.uqmp-staging up -d --no-deps app
 services:
   app:
     build: .
@@ -5,8 +16,8 @@ services:
     ports:
       - "3001:3001"
     environment:
-      # Database (nilai via file env VPS — JANGAN bake kredensial di repo)
-      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL wajib diisi via file env VPS}
+      # Database shared (template tanpa secret — nilai via interpolasi env)
+      - DATABASE_URL=postgres://uqmp:${UQMP_DB_PASSWORD:?UQMP_DB_PASSWORD wajib di env (file VPS shared)}@staging-postgres-18:5432/uqmp
       # SSO Supabase PROD (IdP). service_role HARAM. JWT_SECRET lama HARAM.
       - SUPABASE_URL=${SUPABASE_URL:-https://api.nathara.ac.id}
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
@@ -23,39 +34,19 @@ services:
       - AI_PROVIDER_URL=${AI_PROVIDER_URL:-}
       - AI_PROVIDER_KEY=${AI_PROVIDER_KEY:-}
       - AI_PROVIDER_MODEL=${AI_PROVIDER_MODEL:-}
-    depends_on:
-      db:
-        condition: service_healthy
     volumes:
       - uqmp-uploads:/app/uploads
     networks:
       - siakad-network
-    restart: unless-stopped
-
-  db:
-    image: postgres:18-alpine
-    container_name: uqmp-postgres
-    environment:
-      - POSTGRES_USER=${UQMP_DB_USER:?UQMP_DB_USER wajib diisi via file env VPS}
-      - POSTGRES_PASSWORD=${UQMP_DB_PASSWORD:?UQMP_DB_PASSWORD wajib diisi via file env VPS}
-      - POSTGRES_DB=${UQMP_DB_NAME:?UQMP_DB_NAME wajib diisi via file env VPS}
-    ports:
-      - "54331:5432"
-    volumes:
-      - uqmp-pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - staging-shared
     restart: unless-stopped
 
 volumes:
-  uqmp-pgdata:
-    external: true
   uqmp-uploads:
     external: true
 
 networks:
   siakad-network:
+    external: true
+  staging-shared:
     external: true
