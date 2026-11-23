@@ -52,26 +52,107 @@ export function roleHasPermission(role: string, _permission: Permission | string
   return role === 'admin';
 }
 
-// ── JWKS cache (HANYA JWKS yang di-cache; keputusan user TIDAK di-cache) ────
+// ── JWKS tunggal + backoff + circuit-breaker ringan (L-03) ──────────────────
+// SATU cache JWKS untuk seluruh proses (dipakai middleware + routes SSO).
+// Retry refetch HANYA untuk kid-unknown/JWKS-key (regex sempit — kata
+// `signature` generik DILARANG agar token palsu tidak memicu refetch sia-sia).
+// Gagal jaringan beruntun (≥3) → circuit terbuka 30 dtk (fail-closed cepat,
+// tidak menghantam IdP). Catatan: in-memory, cukup untuk 1 replika staging.
+
+const KID_UNKNOWN_RE = /kid|JWKS|no matching key|key.*not found|unknown key/i;
+const JWKS_FETCH_FAIL_RE = /fetch failed|ECONN|ENOTFOUND|ETIMEDOUT|timeout|network/i;
+const JWKS_MAX_FAILURES = 3;
+const JWKS_COOLDOWN_MS = 30_000;
+const JWKS_MIN_REFRESH_INTERVAL_MS = 30_000;
 
 let jwks: ReturnType<typeof createRemoteJWKSet> | null = null;
 let jwksUrlCached = '';
+let jwksLastRefreshAt = 0;
+let jwksFailures = 0;
+let jwksBlockedUntil = 0;
 
-function getJwks(): ReturnType<typeof createRemoteJWKSet> {
+export function getJwks(): ReturnType<typeof createRemoteJWKSet> {
   if (!jwks || jwksUrlCached !== SSO_JWKS_URL) {
     jwks = createRemoteJWKSet(new URL(SSO_JWKS_URL));
     jwksUrlCached = SSO_JWKS_URL;
+    jwksLastRefreshAt = Date.now();
   }
   return jwks;
+}
+
+function refreshJwks(): void {
+  const now = Date.now();
+  if (now - jwksLastRefreshAt < JWKS_MIN_REFRESH_INTERVAL_MS) {
+    return; // backoff: jangan recreate lebih cepat dari interval
+  }
+  jwksLastRefreshAt = now;
+  jwks = createRemoteJWKSet(new URL(SSO_JWKS_URL));
+  jwksUrlCached = SSO_JWKS_URL;
+  console.log('[sso-audit] JWKS prod di-refresh');
+}
+
+function noteJwksFailure(): void {
+  jwksFailures += 1;
+  if (jwksFailures >= JWKS_MAX_FAILURES) {
+    jwksBlockedUntil = Date.now() + JWKS_COOLDOWN_MS;
+    console.log('[sso-audit] JWKS circuit terbuka 30 dtk (gagal beruntun)');
+  }
+}
+
+function noteJwksSuccess(): void {
+  jwksFailures = 0;
+  jwksBlockedUntil = 0;
+}
+
+/** Verifikasi JWT prod bersama (middleware + callback SSO memakai ini). */
+export async function verifySsoJwt(token: string): Promise<JWTPayload> {
+  if (Date.now() < jwksBlockedUntil) {
+    throw new Error('JWKS circuit terbuka — IdP tidak terjangkau');
+  }
+  const verifyOpts: Record<string, unknown> = {
+    issuer: SSO_ISSUER,
+    clockTolerance: CLOCK_SKEW_SECONDS,
+  };
+  if (SSO_AUDIENCE) {
+    verifyOpts.audience = SSO_AUDIENCE;
+  }
+  try {
+    const { payload } = await jwtVerify(token, getJwks(), verifyOpts);
+    noteJwksSuccess();
+    return payload;
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : '';
+    if (KID_UNKNOWN_RE.test(msg)) {
+      // kid tak dikenal (rotasi 24 jam) → refetch sekali lalu coba lagi
+      refreshJwks();
+      try {
+        const { payload } = await jwtVerify(token, getJwks(), verifyOpts);
+        noteJwksSuccess();
+        return payload;
+      } catch (retryErr: unknown) {
+        if (JWKS_FETCH_FAIL_RE.test(retryErr instanceof Error ? retryErr.message : '')) {
+          noteJwksFailure();
+        }
+        throw retryErr;
+      }
+    }
+    if (JWKS_FETCH_FAIL_RE.test(msg)) {
+      noteJwksFailure();
+    }
+    // Token palsu / expired / iss salah → langsung tolak, TANPA refetch.
+    throw err;
+  }
 }
 
 // ── Ekstraksi klaim role/scope — EXACT, tanpa normalisasi ────────────────────
 // Klaim kanonis prod: `role` (string) + `scopes` (array string / string
 // spasi-koma). Nilai yang diterima HANYA persis `admin` dan `UQMP`.
-// Bila klaim prod ternyata bernama/bernilai beda → tolak + eskalasi,
-// JANGAN mapping diam-diam.
+// DILARANG membaca peran dari lokasi klaim lain yang belum di-SSOT-kan
+// (H-01: diselesaikan via SSOT PM Production + token-proof,
+// BUKAN via fallback code). Bila klaim prod ternyata bernama/bernilai beda
+// → tolak + eskalasi, JANGAN mapping diam-diam.
 
-function extractRoleScope(payload: JWTPayload): { role: string; scope: string } | null {
+export function extractRoleScope(payload: JWTPayload): { role: string; scope: string } | null {
   const role = payload.role;
   if (typeof role !== 'string' || role !== 'admin') {
     return null;
@@ -99,29 +180,13 @@ export interface VerifiedProdToken {
 }
 
 export async function verifyProdToken(token: string): Promise<VerifiedProdToken | null> {
+  let payload: JWTPayload;
   try {
-    const verifyOpts: Record<string, unknown> = {
-      issuer: SSO_ISSUER,
-      clockTolerance: CLOCK_SKEW_SECONDS,
-    };
-    if (SSO_AUDIENCE) {
-      verifyOpts.audience = SSO_AUDIENCE;
-    }
-    let verified;
-    try {
-      verified = await jwtVerify(token, getJwks(), verifyOpts);
-    } catch (err: unknown) {
-      // kid tak dikenal (rotasi 24 jam) → refetch JWKS sekali lalu coba lagi
-      const msg = err instanceof Error ? err.message : '';
-      if (/kid|JWKS|signature|key/i.test(msg)) {
-        jwks = createRemoteJWKSet(new URL(SSO_JWKS_URL));
-        jwksUrlCached = SSO_JWKS_URL;
-        verified = await jwtVerify(token, getJwks(), verifyOpts);
-      } else {
-        throw err;
-      }
-    }
-    const { payload } = verified;
+    payload = await verifySsoJwt(token);
+  } catch {
+    return null;
+  }
+  try {
     if (typeof payload.sub !== 'string' || !payload.sub) {
       return null;
     }
@@ -141,7 +206,7 @@ export async function verifyProdToken(token: string): Promise<VerifiedProdToken 
 
 export async function auditSso(
   c: Context,
-  action: 'sso.login' | 'sso.login_failed' | 'auth.forbidden' | 'user.role_mapped',
+  action: 'sso.login' | 'sso.login_failed' | 'sso.logout' | 'auth.forbidden' | 'user.role_mapped',
   detail: Record<string, unknown>,
 ): Promise<void> {
   const line = `[sso-audit] ${action} ${JSON.stringify(detail)}`;
@@ -206,7 +271,9 @@ export async function resolveSsoUser(
     where: { supabaseSub: verified.sub },
   });
 
-  if (mapped && mapped.role === 'admin') {
+  // L-01: guard kanonis = role AND scope dari baris DB (kolom scope hidup,
+  // bukan literal). Selain admin+UQMP exact → 403 default deny.
+  if (mapped && mapped.role === 'admin' && mapped.scope === 'UQMP') {
     await auditSso(c, 'sso.login', { supabaseSub: verified.sub, email: mapped.email });
     return {
       user: {
@@ -214,7 +281,7 @@ export async function resolveSsoUser(
         email: mapped.email,
         name: mapped.name,
         role: 'admin',
-        scope: 'UQMP',
+        scope: mapped.scope,
         orgId: mapped.orgId,
         supabaseSub: verified.sub,
         iat: verified.payload.iat,
@@ -305,8 +372,8 @@ async function provisionAllowlisted(
       userId: row.id,
       email: row.email,
       name: row.name,
-      role: 'admin',
-      scope: 'UQMP',
+      role: row.role,
+      scope: row.scope,
       orgId: row.orgId,
       supabaseSub: verified.sub,
       iat: verified.payload.iat,

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../hooks/useAuth';
 import { Loader2, Shield, AlertTriangle } from 'lucide-react';
 import { getApiBase, setStoredSession } from '../../lib/apiClient';
 
@@ -10,7 +9,6 @@ import { getApiBase, setStoredSession } from '../../lib/apiClient';
 
 export function LoginPage() {
   const { t } = useTranslation();
-  const { loginWithSsoToken } = useAuth();
 
   const [error, setError] = useState<string | null>(null);
   const [ssoExchanging, setSsoExchanging] = useState(false);
@@ -71,22 +69,9 @@ export function LoginPage() {
     return () => { cancelled = true; };
   }, []);
 
-  // Alur token langsung (ditempel dari portal): ?id_token=…
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const idToken = params.get('id_token');
-    if (!idToken) return;
-    window.history.replaceState(null, '', window.location.pathname);
-    setSsoExchanging(true);
-    loginWithSsoToken(idToken)
-      .then(() => {
-        window.location.reload();
-      })
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : 'SSO authentication failed');
-        setSsoExchanging(false);
-      });
-  }, [loginWithSsoToken]);
+  // M-02: alur tempel-token via query DIHAPUS — JWT prod DILARANG lewat URL.
+  // Satu-satunya alur resmi = redirect callback →
+  // fragment #sso_token= → POST /token.
 
   const handleSsoLogin = () => {
     window.location.href = `${getApiBase()}/auth/sso/login`;

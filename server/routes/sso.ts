@@ -4,12 +4,14 @@ import {
   ssoAuthMiddleware,
   getUser,
   verifyProdToken,
+  verifySsoJwt,
+  extractRoleScope,
   resolveSsoUser,
   auditSso,
   type VerifiedProdToken,
 } from '../middleware/ssoAuth.js';
+import { ssoRateLimit } from '../middleware/rateLimit.js';
 import * as crypto from 'crypto';
-import { createRemoteJWKSet, jwtVerify } from 'jose';
 
 // ── SSO-UQMP: adaptor Supabase PROD (ADAPTASI TOTAL K12–K14) ─────────────────
 // IdP: https://api.nathara.ac.id (PROD). Kontrak PM-0246 FINAL:
@@ -30,9 +32,9 @@ const sso = new Hono();
 const SSO_ISSUER = process.env.SSO_ISSUER_URL || 'https://sso.nathara.ac.id';
 const SSO_JWKS_URL =
   process.env.SSO_JWKS_URL || 'https://api.nathara.ac.id/functions/v1/sso-jwks';
-const SSO_AUDIENCE = process.env.SSO_AUDIENCE || '';
 const SSO_CLIENT_ID = process.env.SSO_CLIENT_ID || '';
 const SSO_CLIENT_SECRET = process.env.SSO_CLIENT_SECRET || '';
+// GAP B2: SSO_AUDIENCE tetap dibaca terpusat di ssoAuth.ts — JANGAN karang nilai di sini.
 const SSO_CALLBACK_URL =
   process.env.SSO_CALLBACK_URL || 'https://pjm.nathara.ac.id/api/auth/sso/callback';
 // Endpoint otorisasi IdP: dari discovery bila ada, override via env bila tidak.
@@ -41,7 +43,7 @@ const SSO_TOKEN_URL = process.env.SSO_TOKEN_URL || '';
 const SSO_LOGOUT_URL = process.env.SSO_LOGOUT_URL || SSO_ISSUER;
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://api.nathara.ac.id';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
-const CLOCK_SKEW_SECONDS = 60;
+// Clock-skew ±60 dtk + aud (GAP B2) ditangani verifySsoJwt terpusat (ssoAuth.ts).
 const DISCOVERY_TTL_MS = 3600_000; // 1 jam — KEEP pola scaffold (K14)
 
 interface OidcDiscovery {
@@ -54,7 +56,6 @@ interface OidcDiscovery {
 
 let discoveryCache: OidcDiscovery | null = null;
 let discoveryCacheTime = 0;
-let jwksCache: ReturnType<typeof createRemoteJWKSet> | null = null;
 
 async function getOidcDiscovery(): Promise<OidcDiscovery | null> {
   if (discoveryCache && Date.now() - discoveryCacheTime < DISCOVERY_TTL_MS) {
@@ -66,18 +67,10 @@ async function getOidcDiscovery(): Promise<OidcDiscovery | null> {
     if (!res.ok) return null;
     discoveryCache = (await res.json()) as OidcDiscovery;
     discoveryCacheTime = Date.now();
-    jwksCache = null;
     return discoveryCache;
   } catch {
     return null;
   }
-}
-
-function getJwks(): ReturnType<typeof createRemoteJWKSet> {
-  if (!jwksCache) {
-    jwksCache = createRemoteJWKSet(new URL(SSO_JWKS_URL));
-  }
-  return jwksCache;
 }
 
 // In-memory state store for CSRF (single instance; dibersihkan berkala)
@@ -120,7 +113,7 @@ sso.get('/config', (c) => {
 // Body: { idToken }. Validasi JWKS → mapping admin/UQMP → 200 { user }.
 // Token prod ITU sesi (stateless); FE menyimpannya sebagai Bearer.
 
-sso.post('/login', async (c) => {
+sso.post('/login', ssoRateLimit, async (c) => {
   try {
     const body = await c.req.json();
     const idToken = body.idToken || body.access_token;
@@ -159,7 +152,7 @@ sso.post('/login', async (c) => {
 // ── POST /refresh — refresh via Supabase prod (tanpa lib baru) ───────────────
 // Body: { refreshToken }. Diteruskan ke /auth/v1/token?grant_type=refresh_token.
 
-sso.post('/refresh', async (c) => {
+sso.post('/refresh', ssoRateLimit, async (c) => {
   try {
     const body = await c.req.json();
     if (!body.refreshToken) {
@@ -198,7 +191,7 @@ sso.post('/refresh', async (c) => {
 
 // ── GET /login — mulai alur authorization-code (redirect IdP) ────────────────
 
-sso.get('/login', async (c) => {
+sso.get('/login', ssoRateLimit, async (c) => {
   try {
     const discovery = await getOidcDiscovery();
     const authorizationEndpoint =
@@ -236,7 +229,7 @@ sso.get('/login', async (c) => {
 // ── GET /callback — IdP redirect ke sini (allowlist exact di portal) ─────────
 // URL exact: https://pjm.nathara.ac.id/api/auth/sso/callback
 
-sso.get('/callback', async (c) => {
+sso.get('/callback', ssoRateLimit, async (c) => {
   const code = c.req.query('code');
   const state = c.req.query('state');
   const errorParam = c.req.query('error');
@@ -293,32 +286,24 @@ sso.get('/callback', async (c) => {
       return c.redirect('/?sso_error=Missing+id_token');
     }
 
-    // Verifikasi kriptografis id_token: signature JWKS + iss exact +
-    // exp + clock-skew ±60 dtk + nonce. aud hanya bila SSO_AUDIENCE diisi
-    // (GAP B2 — JANGAN karang nilai).
+    // Verifikasi kriptografis id_token via JWKS tunggal bersama (L-03):
+    // signature RS256 + iss exact + exp + clock-skew ±60 dtk + nonce.
+    // aud hanya bila SSO_AUDIENCE diisi (GAP B2 — JANGAN karang nilai).
+    // M-03: klaim peran dicek exact SEBELUM ssoToken diterbitkan —
+    // tidak ada ssoToken tanpa klaim admin+UQMP exact.
     try {
-      const verifyOpts: Record<string, unknown> = {
-        issuer: SSO_ISSUER,
-        clockTolerance: CLOCK_SKEW_SECONDS,
-      };
-      if (SSO_AUDIENCE) {
-        verifyOpts.audience = SSO_AUDIENCE;
-      }
-      let payload;
-      try {
-        ({ payload } = await jwtVerify(tokenData.id_token, getJwks(), verifyOpts));
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : '';
-        if (/kid|JWKS|signature|key/i.test(msg)) {
-          jwksCache = createRemoteJWKSet(new URL(SSO_JWKS_URL));
-          ({ payload } = await jwtVerify(tokenData.id_token, getJwks(), verifyOpts));
-        } else {
-          throw err;
-        }
-      }
+      const payload = await verifySsoJwt(tokenData.id_token);
 
       if (!payload.nonce || payload.nonce !== storedState.nonce) {
         return c.redirect('/?sso_error=Nonce+mismatch');
+      }
+
+      if (!extractRoleScope(payload)) {
+        await auditSso(c, 'sso.login_failed', {
+          supabaseSub: typeof payload.sub === 'string' ? payload.sub : 'unknown',
+          reason: 'callback: klaim role/scope bukan admin+UQMP exact',
+        });
+        return c.redirect('/?sso_error=Akses+ditolak:+butuh+peran+admin+scope+UQMP');
       }
 
       const verified: VerifiedProdToken = {
@@ -335,16 +320,17 @@ sso.get('/callback', async (c) => {
         return c.redirect('/?sso_error=Missing+sub+claim');
       }
 
-      // Mapping admin/UQMP — selain itu 403 tercatat (redirect error jelas).
+      // Mapping admin/UQMP dari baris DB (L-01: role AND scope) —
+      // selain itu 403 tercatat (redirect error jelas).
       const mapped = await prisma.user.findUnique({
         where: { supabaseSub: verified.sub },
-        select: { id: true, role: true },
+        select: { id: true, role: true, scope: true },
       });
       const allowlisted = (process.env.UQMP_SSO_ALLOWLIST_SUBS || '')
         .split(',')
         .map((s) => s.trim())
         .includes(verified.sub);
-      if ((!mapped || mapped.role !== 'admin') && !allowlisted) {
+      if ((!mapped || mapped.role !== 'admin' || mapped.scope !== 'UQMP') && !allowlisted) {
         await auditSso(c, 'sso.login_failed', {
           supabaseSub: verified.sub,
           reason: 'callback: sub belum dipetakan ke admin/UQMP',
@@ -383,7 +369,7 @@ sso.get('/callback', async (c) => {
 // FE lalu memakai idToken prod sebagai Bearer (stateless). TIDAK ada
 // penerbitan pasangan JWT lokal (DILARANG).
 
-sso.post('/token', async (c) => {
+sso.post('/token', ssoRateLimit, async (c) => {
   try {
     const body = await c.req.json();
     const { token } = body;
@@ -448,7 +434,7 @@ sso.get('/me', ssoAuthMiddleware, async (c) => {
 
 sso.post('/logout', ssoAuthMiddleware, async (c) => {
   const user = getUser(c);
-  await auditSso(c, 'sso.login', {
+  await auditSso(c, 'sso.logout', {
     supabaseSub: user.supabaseSub,
     email: user.email,
     reason: 'logout — sesi klien dihapus, redirect portal',

@@ -160,16 +160,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     applyProfile(res.user, idToken, refreshToken);
   }, [applyProfile]);
 
-  // ── Logout (hapus sesi lokal + redirect portal) ───────────────────────────
+  // ── Logout: audit dulu (dengan token) → hapus sesi → redirect portal ──────
+  // L-02 (kontrak B6): logout WAJIB redirect portal + audit logout terekam.
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     const base = getApiBase();
+    const sessionToken = getStoredToken();
+    let redirectTo = 'https://sso.nathara.ac.id';
+    // 1. Audit logout di backend DULU (masih bawa token).
+    if (sessionToken) {
+      try {
+        const res = await fetch(`${base}/auth/sso/logout`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${sessionToken}` },
+        });
+        if (res.ok) {
+          const body = (await res.json().catch(() => ({}))) as { redirectTo?: string };
+          if (typeof body.redirectTo === 'string' && body.redirectTo) {
+            redirectTo = body.redirectTo;
+          }
+        }
+      } catch {
+        // best-effort: tetap lanjut hapus sesi lokal
+      }
+    }
+    // 2. Hapus sesi lokal.
     clearAll();
-    // Best-effort: beri tahu backend (audit) lalu ke portal.
-    fetch(`${base}/auth/sso/logout`, {
-      method: 'POST',
-      headers: getStoredToken() ? { Authorization: `Bearer ${getStoredToken()}` } : {},
-    }).catch(() => {});
+    // 3. Redirect portal (atau sendBeacon bila redirect diblokir — redirect utama).
+    window.location.href = redirectTo;
   }, [clearAll]);
 
   // ── Value ─────────────────────────────────────────────────────────────────

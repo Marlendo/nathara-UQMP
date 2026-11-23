@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { SignJWT, jwtVerify } from 'jose';
 import { prisma } from '../lib/prisma.js';
 import { ssoAuthMiddleware, requireAdminUQMP, getUser } from '../middleware/ssoAuth.js';
+import { resolvePublicBaseUrl } from '../lib/publicUrl.js';
 
 // SSO-UQMP migrasi (K18): signing audit-link HARAM pakai JWT_SECRET lama.
 // Kunci sesi app baru via file VPS: UQMP_LINK_SECRET (nilai DILARANG di log).
@@ -113,7 +114,8 @@ auditMode.post('/create', ssoAuthMiddleware, requireAdminUQMP(), async (c) => {
 
     const token = await signAuditToken(payload, expiry);
 
-    const baseUrl = c.req.header('origin') || c.req.header('referer')?.replace(/\/[^/]*$/, '') || 'http://localhost:5173';
+    // L-04: baseUrl WAJIB allowlist exact (bukan Origin/Referer mentah).
+    const baseUrl = resolvePublicBaseUrl(c);
     const auditUrl = `${baseUrl}/audit/${token}`;
 
     return c.json({

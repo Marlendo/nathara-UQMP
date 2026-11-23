@@ -110,6 +110,15 @@ vi.mock('./middleware/ssoAuth.js', () => ({
   isSsoFreshForEsign: (user: any) =>
     typeof user?.iat === 'number' && Date.now() / 1000 - user.iat <= 300,
   verifyProdToken: async () => null,
+  verifySsoJwt: async () => { throw new Error('Invalid token'); },
+  extractRoleScope: (payload: any) => {
+    if (!payload || payload.role !== 'admin') return null;
+    const scopes = payload.scopes;
+    const list: string[] = Array.isArray(scopes) ? scopes : typeof scopes === 'string' ? scopes.split(/[\s,]+/) : [];
+    if (!list.includes('UQMP')) return null;
+    return { role: 'admin', scope: 'UQMP' };
+  },
+  getJwks: () => null,
   resolveSsoUser: async () => ({ error: TEST_FORBIDDEN_MESSAGE, status: 403 }),
   auditSso: async () => {},
 }));
@@ -1474,5 +1483,48 @@ describe('server app contracts', () => {
       message: TEST_FORBIDDEN_MESSAGE,
     });
     expect(prisma.monitoringReading.create).not.toHaveBeenCalled();
+  });
+
+  it('rate-limits public SSO endpoints per IP (M-01)', async () => {
+    process.env.SSO_RATE_LIMIT_MAX = '3';
+    try {
+      let lastStatus = 0;
+      for (let i = 0; i < 4; i += 1) {
+        const res = await requestJson('/api/auth/sso/login', {
+          method: 'POST',
+          body: { idToken: 'invalid' },
+        });
+        lastStatus = res.status;
+      }
+      expect(lastStatus).toBe(429);
+    } finally {
+      delete process.env.SSO_RATE_LIMIT_MAX;
+    }
+  });
+
+  it('denies admin role with non-UQMP scope (L-01 guard kanonis)', async () => {
+    const response = await requestJson('/api/projects', {
+      user: { ...baseUser, scope: 'OTHER' },
+      method: 'POST',
+      body: { name: 'Should not be created' },
+    });
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({
+      message: TEST_FORBIDDEN_MESSAGE,
+    });
+    expect(prisma.project.create).not.toHaveBeenCalled();
+  });
+
+  it('audits logout and returns portal redirect (L-02)', async () => {
+    const response = await requestJson('/api/auth/sso/logout', {
+      user: baseUser,
+      method: 'POST',
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      redirectTo: 'https://sso.nathara.ac.id',
+    });
   });
 });

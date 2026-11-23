@@ -24,9 +24,10 @@ realtime.get('/events', async (c) => {
 
   const mapped = await prisma.user.findUnique({
     where: { supabaseSub: verified.sub },
-    select: { id: true, role: true },
+    select: { id: true, role: true, scope: true },
   });
-  if (!mapped || mapped.role !== 'admin') {
+  // L-01: guard kanonis = role AND scope dari baris DB.
+  if (!mapped || mapped.role !== 'admin' || mapped.scope !== 'UQMP') {
     return c.json(
       { message: 'Akses ditolak: butuh peran admin scope UQMP. Hubungi admin PJM.' },
       403,
